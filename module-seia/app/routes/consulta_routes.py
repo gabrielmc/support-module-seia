@@ -9,15 +9,11 @@ router = APIRouter(
     tags=["CONSULTAS"]
 )
 
-@router.get("/check-boletos-processados")
-def check_boletos_processados_Onsistema():
-    return {"modulo": "CONSULTAS"}
 
 @router.post("/registrar-retorno",
     response_model=RetornoArquivoSchema
 )
 async def registrar_retorno(arquivo: UploadFile = File(...)):
-
     if not arquivo.filename.endswith(".txt"):
         raise HTTPException(
             status_code=400,
@@ -27,7 +23,6 @@ async def registrar_retorno(arquivo: UploadFile = File(...)):
     conteudo = await arquivo.read()
     linhas = conteudo.decode("utf-8").splitlines()
     boletos_processados = ConsultaService.processar_retorno_cnab(linhas)
-
     return {
         "arquivo": arquivo.filename,
         "total_processados": len(boletos_processados),

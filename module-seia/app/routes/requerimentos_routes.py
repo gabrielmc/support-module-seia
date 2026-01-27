@@ -18,3 +18,13 @@ def up_requerimentos_repflor(payload: RepflorRequest):
         return service
     except Exception as e:
         return {"error": str(e)}
+    
+@router.get(
+    "/repflor-consulta-status/{identificador}",
+)
+def up_requerimentos_repflor(identificador: str):
+    try:
+        service = RepflorService().consultar_status(identificador)
+        return service
+    except Exception as e:
+        return {"error": str(e)}
