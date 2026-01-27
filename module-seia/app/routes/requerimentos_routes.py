@@ -8,10 +8,7 @@ router = APIRouter(
     tags=["REQUERIMENTOS"]
 )
 
-@router.post(
-    "/repflor",
-    response_model=RepflorResponse
-)
+@router.post("/repflor", response_model=RepflorResponse)
 def up_requerimentos_repflor(payload: RepflorRequest):
     try:
         service = RepflorService().processar(payload)
@@ -19,9 +16,7 @@ def up_requerimentos_repflor(payload: RepflorRequest):
     except Exception as e:
         return {"error": str(e)}
     
-@router.get(
-    "/repflor-consulta-status/{identificador}",
-)
+@router.get("/repflor-consulta-status/{identificador}")
 def up_requerimentos_repflor(identificador: str):
     try:
         service = RepflorService().consultar_status(identificador)

@@ -6,6 +6,6 @@ router = APIRouter(
     tags=["RELATÓRIOS"]
 )
 
-@router.get("/")
+@router.get("/relatorios")
 def gerar_relatorio():
     return {"modulo": "RELATÓRIOS"}

@@ -39,17 +39,11 @@ class ConsultaService:
         boleto_atual = None
 
         for linha in linhas:
-            tipo_registro = linha[13]  # T ou U
-            
-            # REGISTRO T
-            # -------------------
+            tipo_registro = linha[13]  # REGISTRO T ou REGISTRO U
             if tipo_registro == "T":
                 boleto_atual = {
                     "numero_boleto": linha[37:57].strip()
                 }
-
-            # REGISTRO U
-            # -------------------
             elif tipo_registro == "U" and boleto_atual:
                 status_u = linha[15:17]
                 valor_pago = cls.parse_valor(linha[77:92])
@@ -72,9 +66,7 @@ class ConsultaService:
                         ),
                         "origem": "REGISTRO U"
                     })
-
                 boleto_atual = None
-
         return boletos_processados
 
     @staticmethod

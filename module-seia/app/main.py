@@ -4,7 +4,7 @@ from fastapi import FastAPI
 #from app.routes.seguranca_routes import router as seguranca_router
 #from app.routes.relatorios_routes import router as relatorios_router
 from app.routes.requerimentos_routes import router as requerimentos_router
-from app.routes.consultas_routes import router as consultas_router
+from app.routes.consulta_routes import router as consultas_router
 
 
 app = FastAPI(

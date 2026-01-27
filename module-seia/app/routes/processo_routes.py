@@ -6,6 +6,6 @@ router = APIRouter(
     tags=["PROCESSO"]
 )
 
-@router.get("/")
+@router.get("/processos")
 def listar_processos():
     return {"modulo": "PROCESSO"}
