@@ -1,34 +1,39 @@
 from app.core.database import get_db_connection
 
 class RepflorRepository:
+    
+    desenvolvimento = "DSV"
+    homologacao = "HML"
 
     def buscar_por_identificador(self, identificador: str) -> dict | None:
         try:
-            identificador = identificador.strip()
-            desenvolvimento = "DSV"
+            identificador = identificador.strip()            
             sql = """
             SELECT * FROM tramitacao_requerimento trq
             WHERE trq.ide_requerimento in ( 
                 SELECT rq.ide_requerimento FROM requerimento rq
-                WHERE rq.num_requerimento like '%(identificador)s'
+                WHERE rq.num_requerimento LIKE %(identificador)s
             )
-            AND trq.ide_status_requerimento = 5
+            --AND trq.ide_status_requerimento = 5
             ORDER BY trq.dtc_movimentacao DESC
             LIMIT 1;
             """
-            with get_db_connection(desenvolvimento) as conn:
+            with get_db_connection(self.desenvolvimento) as conn:
                 with conn.cursor() as cursor:
-                    cursor.execute(sql, {"identificador": identificador})
+                    cursor.execute(
+                        sql,
+                        {"identificador": f"%{identificador}%"}
+                    )
                     row = cursor.fetchone()
 
             if not row:
                 return None
-
             return {
                 "id_requerimento": row[0],
                 "ide_status_requerimento": row[1]
             }
         except Exception as e:
+            print(f"Erro ao buscar identificador: {e}")
             raise e
         
     def _atualizar_status_em_ambiente(self, ambiente: str, id_requerimento: int, novo_status: int) -> int:
@@ -39,7 +44,7 @@ class RepflorRepository:
         sql = """
             UPDATE tramitacao_requerimento
             SET ide_status_requerimento = %(novo_status)s
-            WHERE id_tramitacao_requerimento = %(id_requerimento)s;
+            WHERE ide_tramitacao_requerimento = %(id_requerimento)s;
         """
         with get_db_connection(ambiente) as conn:
             with conn.cursor() as cursor:
@@ -60,22 +65,21 @@ class RepflorRepository:
     
     def atualizar_status_dsv_hml(self, id_requerimento: int, novo_status: int) -> dict:
         #Atualiza primeiro em DSV e, se tiver sucesso, replica em HML
-        desenvolvimento = "DSV"
-        homologacao = "HML"
         rows_dsv = self._atualizar_status_em_ambiente(
-            desenvolvimento,
+            self.desenvolvimento,
             id_requerimento,
             novo_status
         )
         if rows_dsv == 0: return 0
 
         rows_hml = self._atualizar_status_em_ambiente(
-            homologacao,
+            self.homologacao,
             id_requerimento,
             novo_status
         )
         if rows_hml == 0: return 0
 
+        #rows_hml = 1  #Simula sucesso em HML
         return rows_dsv, rows_hml
 
     def gerar_script_update(self, id_requerimento: int, novo_status: int) -> str:
@@ -84,7 +88,7 @@ class RepflorRepository:
             BEGIN;
                 UPDATE tramitacao_requerimento
                 SET ide_status_requerimento = {novo_status}
-                WHERE id_tramitacao_requerimento = {id_requerimento};
+                WHERE ide_tramitacao_requerimento = {id_requerimento};
             COMMIT;
         """.strip()
         return rows_dsv, rows_hml, script_text

@@ -3,9 +3,11 @@ from app.core.database import get_db_connection
 
 
 class ConsultaRepository:
+    
+    desenvolvimento = "DSV"
+    homologacao = "HML"
 
-    @staticmethod
-    def buscar_boletos(
+    def buscar_boletos(self,
         numero_boleto: Optional[str] = None,
         datas_pagamento: Optional[List[str]] = None
     ):
@@ -29,7 +31,7 @@ class ConsultaRepository:
             query += " AND b.dtc_pagamento = ANY(%s)"
             params.append(datas_pagamento)
 
-        with get_db_connection() as conn:
+        with get_db_connection(self.desenvolvimento) as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query, params)
                 colunas = [desc[0] for desc in cursor.description]

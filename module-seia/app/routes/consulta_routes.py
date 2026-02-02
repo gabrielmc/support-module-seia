@@ -1,4 +1,5 @@
-# app/routes/relatorios_routes.py
+# app/routes/consultas_routes.py
+
 from fastapi import APIRouter, UploadFile, File, HTTPException, Query
 from typing import List, Optional
 from app.services.consulta_service import ConsultaService
@@ -8,7 +9,6 @@ router = APIRouter(
     prefix="/consultas",
     tags=["CONSULTAS"]
 )
-
 
 @router.post("/registrar-retorno", response_model=RetornoArquivoSchema)
 async def registrar_retorno(arquivo: UploadFile = File(...)):
@@ -27,10 +27,10 @@ async def registrar_retorno(arquivo: UploadFile = File(...)):
     }
 
 @router.get("/boletos")
-def consultar_boletos(
-    numero_boleto: Optional[str] = Query(None, description="Número do boleto"),
-    datas_pagamento: Optional[List[str]] = Query(None, description="Lista de datas de pagamento (YYYY-MM-DD)")
-):
+async def consultar_boletos(
+        numero_boleto: Optional[str] = Query(None, description="Número do boleto"),
+        datas_pagamento: Optional[List[str]] = Query(None, description="Lista de datas de pagamento (YYYY-MM-DD)")
+    ):
     #Consulta boletos por número, data de pagamento ou ambos.
     return {
         "filtros": {

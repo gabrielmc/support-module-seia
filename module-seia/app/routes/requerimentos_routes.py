@@ -1,6 +1,6 @@
 # app/routes/requerimentos_routes.py
+
 from fastapi import APIRouter
-from app.models.schemas.repflor_schema import RepflorRequest, RepflorResponse
 from app.services.repflor_service import RepflorService
 
 router = APIRouter(
@@ -8,18 +8,22 @@ router = APIRouter(
     tags=["REQUERIMENTOS"]
 )
 
-@router.post("/repflor", response_model=RepflorResponse)
-def up_requerimentos_repflor(payload: RepflorRequest):
+@router.post("/repflor/{identificador}")
+async def up_requerimentos_repflor(identificador: str):
     try:
-        service = RepflorService().processar(payload)
+        identificador_formatted = identificador+"/INEMA/REPFLOR"
+        service = RepflorService().processar(identificador_formatted)
         return service
     except Exception as e:
+        print(f"Erro ao atualizar repflors: {e}")
         return {"error": str(e)}
     
-@router.get("/repflor-consulta-status/{identificador}")
-def up_requerimentos_repflor(identificador: str):
+@router.get("/repflor-status/{identificador}")
+async def consulta_status_repflor(identificador: str):
     try:
-        service = RepflorService().consultar_status(identificador)
+        identificador_formatted = identificador+"/INEMA/REPFLOR"
+        service = RepflorService().consultar_status(identificador_formatted)
         return service
     except Exception as e:
+        print(f"Erro ao consultar status repflor: {e}")
         return {"error": str(e)}

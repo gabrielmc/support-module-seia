@@ -71,7 +71,11 @@ class ConsultaService:
 
     @staticmethod
     def consultar_boletos(numero_boleto: Optional[str], datas_pagamento: Optional[List[str]]):
-        return ConsultaRepository.buscar_boletos(
-            numero_boleto=numero_boleto,
-            datas_pagamento=datas_pagamento
-        )
+        try:
+            return ConsultaRepository().buscar_boletos(
+                numero_boleto=numero_boleto,
+                datas_pagamento=datas_pagamento
+            )
+        except Exception as e:
+            print(f"Erro ao consultar boletos: {e}")
+            raise e

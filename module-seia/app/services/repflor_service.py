@@ -1,6 +1,4 @@
 from app.repositories.repflor_repository import RepflorRepository
-from app.models.schemas.repflor_schema import RepflorRequest, RepflorResponse
-
 
 class RepflorService:
     
@@ -19,7 +17,7 @@ class RepflorService:
             "ide_status_requerimento": resultado["ide_status_requerimento"]
         }
     
-    def processar(self, identificador: str): # 2025.001.005254/INEMA/REPFLOR
+    def processar(self, identificador: str):
         resultado = self.repository.buscar_por_identificador(identificador)
         if not resultado:
             return {"mensagem": "Não encontrado"}
