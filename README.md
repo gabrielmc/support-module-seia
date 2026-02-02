@@ -1,4 +1,4 @@
-# 📦 Módulo SEIA – API em Python (FastAPI)
+# 📦 Módulo SEIA – API em Python
 
 Este projeto faz parte do **módulo SEIA**, desenvolvido em **Python** utilizando **FastAPI**, com foco em:
 
