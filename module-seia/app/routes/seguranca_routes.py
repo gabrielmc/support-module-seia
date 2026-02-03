@@ -1,4 +1,5 @@
 # app/routes/seguranca_routes.py
+
 from fastapi import APIRouter
 
 router = APIRouter(
