@@ -7,7 +7,7 @@ class ProcessoRepository:
     desenvolvimento = "DSV"
     homologacao = "HML"
 
-    def Removendo_status_anterior(self, tramitacao: Optional[str] = None):
+    def removendo_status_anterior(self, tramitacao: Optional[str] = None):
         query = """
             UPDATE controle_tramitacao ct
             SET
