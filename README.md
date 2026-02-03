@@ -8,7 +8,8 @@ Este projeto faz parte do **módulo SEIA**, desenvolvido em **Python** utilizand
 - Organização em camadas (routes, services, repositories)
 
 
-## ⚠️ **Observação importante**:  
+## ⚠️ **Observação importante**:
+
 O projeto principal do SEIA utiliza a porta **8080** (JBoss).  
 Por isso, esta API roda em **outra porta**, evitando conflitos.
 
