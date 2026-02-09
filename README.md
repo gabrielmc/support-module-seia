@@ -3,7 +3,7 @@
 Este projeto faz parte do **módulo SEIA**, desenvolvido em **Python** utilizando **FastAPI**, com foco em:
 
 - Consultas ao banco de dados
-- Processamento de arquivos CNAB
+- Processamento de arquivos
 - Integração com múltiplos ambientes (DSV e HML)
 - Organização em camadas (routes, services, repositories)
 
@@ -47,9 +47,10 @@ module-seia/
 ## 🧪 Ambiente Virtual (venv)
 
 ```bash
-python3 -m venv .venv
-
+rm -rf .venv
+python -m venv .venv
 source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
 ### 1️⃣ Criar o ambiente virtual
