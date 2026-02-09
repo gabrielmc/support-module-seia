@@ -25,9 +25,10 @@ module-seia/
 │ ├── repositories/         # Acesso a dados (SQL / PostgreSQL)
 │ ├── routes/               # Endpoints da API
 │ ├── services/             # Regras de negócio
-│ └── main.py               # Inicialização da aplicação FastAPI
+│ ├── main.py               # Inicialização da aplicação FastAPI
+│ ├── .env.py               # Inserir nessa camada de pastas
+│ └── env-exemple.py        # Exemplo das Variáveis de ambiente 
 │
-├── .env                    # Variáveis de ambiente
 ├── requirements.txt        # Dependências do projeto
 ├── README.md
 └── .gitignore

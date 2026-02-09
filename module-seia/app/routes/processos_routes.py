@@ -8,7 +8,6 @@ router = APIRouter(
     tags=["PROCESSO"]
 )
 
-
 @router.post("/processo/{identificador}")
 async def alterar_status_controle_tramitacao(controle_tramitacao: str):
     try:
