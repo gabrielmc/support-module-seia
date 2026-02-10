@@ -1,4 +1,4 @@
-# app/routes/seguranca_routes.py
+# app/routes/segurancas_routes.py
 
 from fastapi import APIRouter
 from app.services.seguranca_service import SegurancaService
