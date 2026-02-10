@@ -1,4 +1,4 @@
-# app/routes/processo_routes.py
+# app/routes/processos_routes.py
 
 from fastapi import APIRouter
 from app.services.processo_service import ProcessoService
