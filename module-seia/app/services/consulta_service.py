@@ -18,6 +18,9 @@ class ConsultaService:
         "17": "Liquidação / baixa",
     }
 
+    # ==========================
+    # Utils
+    # ==========================
     @staticmethod
     def parse_valor(valor_str: str) -> Decimal:
         return Decimal(valor_str) / Decimal("100")
@@ -33,23 +36,26 @@ class ConsultaService:
         descricao = cls.STATUS_MAP.get(codigo, "Status desconhecido")
         return f"{codigo} - {descricao}"
 
+    # ==========================
+    # Processamento CNAB
+    # ==========================
     @classmethod
-    def processar_retorno_cnab(cls, linhas):
+    def processar_retorno_cnab(cls, linhas: List[str]) -> List[dict]:
         boletos_processados = []
         boleto_atual = None
 
         for linha in linhas:
-            tipo_registro = linha[13]  # REGISTRO T ou REGISTRO U
+            tipo_registro = linha[13]
+
             if tipo_registro == "T":
                 boleto_atual = {
                     "numero_boleto": linha[37:57].strip()
                 }
+
             elif tipo_registro == "U" and boleto_atual:
                 status_u = linha[15:17]
                 valor_pago = cls.parse_valor(linha[77:92])
                 data_pagamento = cls.parse_data(linha[145:153])
-
-                # Rejeição → ignora
                 if status_u in cls.REJEICOES:
                     boleto_atual = None
                     continue
@@ -69,8 +75,39 @@ class ConsultaService:
                 boleto_atual = None
         return boletos_processados
 
+    # ==========================
+    # Enriquecimento com banco
+    # ==========================
+    @classmethod
+    def enriquecer_boletos_com_datas(cls, boletos_cnab: List[dict]) -> List[dict]:
+        numeros_boletos = [b["numero_boleto"] for b in boletos_cnab]
+
+        dados_db = ConsultaRepository().buscar_datas_boletos(numeros_boletos)
+
+        for boleto in boletos_cnab:
+            info_db = dados_db.get(boleto["numero_boleto"])
+
+            if info_db:
+                boleto["dtc_pagamento_db"] = (
+                    info_db["dtc_pagamento"]
+                    if info_db["dtc_pagamento"]
+                    else "Não há pagamento registrado"
+                )
+                boleto["dtc_vencimento"] = info_db["dtc_vencimento"]
+            else:
+                boleto["dtc_pagamento_db"] = "Boleto não encontrado"
+                boleto["dtc_vencimento"] = None
+
+        return boletos_cnab
+
+    # ==========================
+    # Consulta direta (endpoint)
+    # ==========================
     @staticmethod
-    def consultar_boletos(numero_boleto: Optional[str], datas_pagamento: Optional[List[str]]):
+    def consultar_boletos(
+        numero_boleto: Optional[str],
+        datas_pagamento: Optional[List[str]]
+    ):
         try:
             return ConsultaRepository().buscar_boletos(
                 numero_boleto=numero_boleto,
@@ -78,4 +115,4 @@ class ConsultaService:
             )
         except Exception as e:
             print(f"Erro ao consultar boletos: {e}")
-            raise e
+            raise
