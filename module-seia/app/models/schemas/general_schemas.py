@@ -8,7 +8,14 @@ class RepflorRequest(BaseModel):
         description="String identificadora para consulta no REPLFOR"
     )
 
+
 class RepflorResponse(BaseModel):
     encontrado: bool
     status: int | None = None
     update_script: str | None = None
+
+
+class ExcluirRequerimentoLogico(BaseModel):
+    requerente: str = Field(..., example="JOÃO DA SILVA")
+    cpf_cnpj: str = Field(..., example="12345678901")
+    imovel: str = Field(..., example="FAZENDA BOA VISTA")
