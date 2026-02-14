@@ -2,7 +2,11 @@
 
 from fastapi import APIRouter
 from app.services.repflor_service import RepflorService
+import logging
+logging.basicConfig(level=logging.INFO)
 
+
+logger = logging.getLogger("requerimentos")
 router = APIRouter(
     prefix="/requerimentos",
     tags=["REQUERIMENTOS"]

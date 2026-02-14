@@ -9,7 +9,11 @@ from fastapi.responses import StreamingResponse
 from fastapi import UploadFile, File, HTTPException
 from openpyxl.styles import Alignment, Font
 from app.services.relatorio_service import RelatorioService
+import logging
+logging.basicConfig(level=logging.INFO)
 
+
+logger = logging.getLogger("relatorios")
 router = APIRouter(
     prefix="/relatorios",
     tags=["RELATÓRIO"]

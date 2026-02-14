@@ -2,7 +2,11 @@
 
 from fastapi import APIRouter
 from app.services.seguranca_service import SegurancaService
+import logging
+logging.basicConfig(level=logging.INFO)
 
+
+logger = logging.getLogger("seguranca")
 router = APIRouter(
     prefix="/seguranca",
     tags=["SEGURANÇA"]
