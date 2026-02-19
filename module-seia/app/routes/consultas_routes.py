@@ -1,16 +1,20 @@
 # app/routes/consultas_routes.py
 
+import logging
 from fastapi import APIRouter, UploadFile, File, HTTPException, Query
 from typing import List, Optional
 from app.services.consulta_service import ConsultaService
 from app.models.schemas.retorno_cnab_schema import RetornoArquivoSchema
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("consultas")
 
 router = APIRouter(
     prefix="/consultas",
     tags=["CONSULTAS"]
 )
 
-@router.post("/registrar-retorno", response_model=RetornoArquivoSchema)
+@router.post("/averiguar-retorno", response_model=RetornoArquivoSchema)
 async def registrar_retorno(arquivo: UploadFile = File(...)):
     if not arquivo.filename.endswith(".txt"):
         raise HTTPException(
