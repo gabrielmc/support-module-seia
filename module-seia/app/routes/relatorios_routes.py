@@ -11,13 +11,11 @@ from fastapi import UploadFile, File, HTTPException
 from openpyxl.styles import Alignment, Font
 from app.services.relatorio_service import RelatorioService
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("relatorios")
-
 router = APIRouter(
     prefix="/relatorios",
     tags=["RELATÓRIO"]
 )
+logger = logging.getLogger("relatorios")
 
 
 @router.get("/zoneamento-UC/{periodo}")
@@ -95,6 +93,7 @@ def listar_relatorios(periodo: str):
     except HTTPException:
         raise
     except Exception as e:
+        logger.warning(f"EXCEPTION - GET - /zoneamento-UC/[periodo] erro : {e}")
         print(f"Erro ao gerar relatório: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -179,6 +178,7 @@ def converter_csv_para_excel(arquivo: UploadFile = File(...)):
             }
         )
     except Exception as e:
+        logger.warning(f"EXCEPTION - POST - /zoneamento-UC/csv-to-xlsx erro : {e}")
         print(f"Erro ao converter CSV: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -257,5 +257,7 @@ def corrigir_xlsx_coordenadas(arquivo: UploadFile = File(...)):
     except HTTPException:
         raise
     except Exception as e:
+        logger.warning(f"EXCEPTION - POST - /zoneamento-UC/xlsx-corrigir-coordenadas erro : {e}")
         print(f"Erro ao corrigir XLSX: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
