@@ -1,9 +1,13 @@
 # app/routes/processos_routes.py
 
+import logging
 import re
 from fastapi import APIRouter
 from app.services.processo_service import ProcessoService
 from app.models.schemas.general_schemas import *
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("processos")
 
 router = APIRouter(
     prefix="/processos",
