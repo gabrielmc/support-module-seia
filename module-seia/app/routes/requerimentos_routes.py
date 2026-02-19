@@ -5,13 +5,11 @@ from fastapi import APIRouter
 from app.models.schemas.general_schemas import *
 from app.services.repflor_service import RepflorService
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("requerimentos")
-
 router = APIRouter(
     prefix="/requerimentos",
     tags=["REQUERIMENTOS"]
 )
+logger = logging.getLogger("requerimentos")
 
 @router.post("/repflor/{identificador}")
 async def up_requerimentos_repflor(identificador: str):
@@ -20,6 +18,7 @@ async def up_requerimentos_repflor(identificador: str):
         service = RepflorService().processar(identificador_formatted)
         return service
     except Exception as e:
+        logger.warning(f"EXCEPTION - POST - /repflor[params] erro : {e}")
         print(f"Erro ao atualizar repflors: {e}")
         return {"error": str(e)}
     
@@ -30,5 +29,6 @@ async def consulta_status_repflor(identificador: str):
         service = RepflorService().consultar_status(identificador_formatted)
         return service
     except Exception as e:
+        logger.warning(f"EXCEPTION - POST - /repflor-status erro : {e}")
         print(f"Erro ao consultar status repflor: {e}")
         return {"error": str(e)}
