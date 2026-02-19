@@ -1,5 +1,6 @@
 # app/routes/relatorios_routes.py
 
+import logging
 import pandas as pd
 from io import BytesIO
 from shapely import wkb
@@ -9,6 +10,9 @@ from fastapi.responses import StreamingResponse
 from fastapi import UploadFile, File, HTTPException
 from openpyxl.styles import Alignment, Font
 from app.services.relatorio_service import RelatorioService
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("relatorios")
 
 router = APIRouter(
     prefix="/relatorios",
@@ -255,4 +259,3 @@ def corrigir_xlsx_coordenadas(arquivo: UploadFile = File(...)):
     except Exception as e:
         print(f"Erro ao corrigir XLSX: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
