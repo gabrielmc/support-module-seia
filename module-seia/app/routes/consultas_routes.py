@@ -1,20 +1,18 @@
 # app/routes/consultas_routes.py
 
+import logging
 from fastapi import APIRouter, UploadFile, File, HTTPException, Query
 from typing import List, Optional
 from app.services.consulta_service import ConsultaService
 from app.models.schemas.retorno_cnab_schema import RetornoArquivoSchema
-import logging
-logging.basicConfig(level=logging.INFO)
 
-
-logger = logging.getLogger("consultas")
 router = APIRouter(
     prefix="/consultas",
     tags=["CONSULTAS"]
 )
+logger = logging.getLogger("consultas")
 
-@router.post("/registrar-retorno", response_model=RetornoArquivoSchema)
+@router.post("/averiguar-retorno", response_model=RetornoArquivoSchema)
 async def registrar_retorno(arquivo: UploadFile = File(...)):
     try:
         if not arquivo.filename.endswith(".txt"):
@@ -31,9 +29,9 @@ async def registrar_retorno(arquivo: UploadFile = File(...)):
             "boletos": boletos_processados
         }
     except Exception as e:
-        logger.info(f"POST/registrar-retorno - {e}")
-        print(f"Erro ao excluir requerimento logicamente: {e}")
-        raise e
+        logger.warning(f"EXCEPTION - POST - /averiguar-retorno erro : {e}")
+        print(f"Erro ao alterar status controle tramitacao: {e}")
+        return {"error": str(e)}
 
 @router.get("/boletos")
 async def consultar_boletos(
@@ -53,6 +51,6 @@ async def consultar_boletos(
             )
         }
     except Exception as e:
-        logger.info(f"GET/boletos - {e}")
-        print(f"Erro ao excluir requerimento logicamente: {e}")
-        raise e
+        logger.warning(f"EXCEPTION - GET - /boletos erro : {e}")
+        print(f"Erro ao alterar status controle tramitacao: {e}")
+        return {"error": str(e)}
