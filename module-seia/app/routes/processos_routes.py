@@ -6,13 +6,11 @@ from fastapi import APIRouter
 from app.services.processo_service import ProcessoService
 from app.models.schemas.general_schemas import *
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("processos")
-
 router = APIRouter(
     prefix="/processos",
     tags=["PROCESSOS & CEFIR"]
 )
+logger = logging.getLogger("processos")
 
 @router.post("/processo/{identificador}")
 async def alterar_status_controle_tramitacao(controle_tramitacao: str):
@@ -20,6 +18,7 @@ async def alterar_status_controle_tramitacao(controle_tramitacao: str):
         service = ProcessoService().removendo_status_anterior(tramitacao=controle_tramitacao)
         return service
     except Exception as e:
+        logger.warning(f"EXCEPTION - POST - /processo[params] erro : {e}")
         print(f"Erro ao alterar status controle tramitacao: {e}")
         return {"error": str(e)}
 
@@ -35,6 +34,7 @@ async def excluir_requerimento_duplicado(payload: ExcluirRequerimentoLogico):
         )
         return service
     except Exception as e:
+        logger.warning(f"EXCEPTION - POST - /cefir/excluir-duplicado erro : {e}")
         print(f"Erro ao excluir requerimento duplicado: {e}")
         return {"error": str(e)}
         #raise HTTPException(status_code=500, detail=str(e))
