@@ -14,6 +14,7 @@ logger = logging.getLogger("consultas")
 
 @router.post("/averiguar-retorno", response_model=RetornoArquivoSchema)
 async def registrar_retorno(arquivo: UploadFile = File(...)):
+    logger.info(f"POST /averiguar-retorno")
     try:
         if not arquivo.filename.endswith(".txt"):
             raise HTTPException(
@@ -38,6 +39,7 @@ async def consultar_boletos(
         numero_boleto: Optional[str] = Query(None, description="Número do boleto"),
         datas_pagamento: Optional[List[str]] = Query(None, description="Lista de datas de pagamento (YYYY-MM-DD)")
     ):
+    logger.info(f"GET /boletos")
     try:
         #Consulta boletos por número, data de pagamento ou ambos.
         return {

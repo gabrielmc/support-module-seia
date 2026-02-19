@@ -14,6 +14,7 @@ logger = logging.getLogger("processos")
 
 @router.post("/processo/{identificador}")
 async def alterar_status_controle_tramitacao(controle_tramitacao: str):
+    logger.info(f"POST /processo")
     try:
         service = ProcessoService().removendo_status_anterior(tramitacao=controle_tramitacao)
         return service
@@ -25,6 +26,7 @@ async def alterar_status_controle_tramitacao(controle_tramitacao: str):
 
 @router.post("/cefir/excluir-duplicado")
 async def excluir_requerimento_duplicado(payload: ExcluirRequerimentoLogico):
+    logger.info(f"POST /cefir/excluir-duplicado")
     try:
         cnpj_cpf_limpo = re.sub(r"\D", "", payload.cpf_cnpj)
         service = ProcessoService().excluir_requerimento_logicamente(

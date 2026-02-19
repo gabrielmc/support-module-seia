@@ -21,6 +21,7 @@ logger = logging.getLogger("relatorios")
 
 @router.get("/zoneamento-UC/{periodo}")
 def listar_relatorios(periodo: str):
+    logger.info(f"GET /zoneamento-UC")
     try:
         data_fomatada = pd.to_datetime(periodo, dayfirst=True).strftime("%Y-%m-%d")
         dados_relatorios = RelatorioService().relatorio_uc(data_fomatada)
@@ -98,6 +99,7 @@ def listar_relatorios(periodo: str):
 
 @router.post("/zoneamento-UC/csv-to-xlsx")
 def converter_csv_para_excel(arquivo: UploadFile = File(...)):
+    logger.info(f"POST /zoneamento-UC/csv-to-xlsx")
     try:
         # Validação básica
         if not arquivo.filename.endswith(".csv"):
@@ -183,6 +185,7 @@ def converter_csv_para_excel(arquivo: UploadFile = File(...)):
 
 @router.post("/zoneamento-UC/xlsx-corrigir-coordenadas")
 def corrigir_xlsx_coordenadas(arquivo: UploadFile = File(...)):
+    logger.info(f"POST /zoneamento-UC/xlsx-corrigir-coordenadas")
     try:
         if not arquivo.filename.endswith(".xlsx"):
             raise HTTPException(status_code=400, detail="Envie um arquivo .xlsx")
@@ -257,4 +260,3 @@ def corrigir_xlsx_coordenadas(arquivo: UploadFile = File(...)):
         logger.warning(f"EXCEPTION - POST - /zoneamento-UC/xlsx-corrigir-coordenadas erro : {e}")
         print(f"Erro ao corrigir XLSX: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-

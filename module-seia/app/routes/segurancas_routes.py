@@ -13,6 +13,7 @@ logger = logging.getLogger("seguranca")
 
 @router.post("/administrativo/{nome_usuario}")
 async def up_perfil_administrativo(nome_usuario: str):
+    logger.info(f"POST /administrativo")
     try:
         service = SegurancaService().atualizar_perfil(nome_usuario)
         return service
@@ -23,6 +24,7 @@ async def up_perfil_administrativo(nome_usuario: str):
 
 @router.post("/inclui-email")
 async def incluir_email_usuario(payload: ListaUsuariosEmail):
+    logger.info(f"POST /inclui-email")
     try:
         service = SegurancaService().incluir_email_usuario(payload.usuarios)
         return service
@@ -33,6 +35,7 @@ async def incluir_email_usuario(payload: ListaUsuariosEmail):
 
 @router.post("/gerar-script-email-cpf")
 async def gerar_script(payload: ListaUsuariosCPF):
+    logger.info(f"POST /gerar-script-email-cpf")
     try:
         file_path = SegurancaService().gerar_script_email_por_cpf(payload.usuarios)
         return {

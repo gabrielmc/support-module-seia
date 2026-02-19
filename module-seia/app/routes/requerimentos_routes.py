@@ -13,6 +13,7 @@ logger = logging.getLogger("requerimentos")
 
 @router.post("/repflor/{identificador}")
 async def up_requerimentos_repflor(identificador: str):
+    logger.info(f"POST /repflor")
     try:
         identificador_formatted = identificador+"/INEMA/REPFLOR"
         service = RepflorService().processar(identificador_formatted)
@@ -24,6 +25,7 @@ async def up_requerimentos_repflor(identificador: str):
     
 @router.get("/repflor-status/{identificador}")
 async def consulta_status_repflor(identificador: str):
+    logger.info(f"GET /repflor-status")
     try:
         identificador_formatted = identificador+"/INEMA/REPFLOR"
         service = RepflorService().consultar_status(identificador_formatted)
