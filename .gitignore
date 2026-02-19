@@ -169,3 +169,7 @@ PyWhatKit_DB.txt
 
 # VS Code
 .vscode/
+
+# logging 
+/logs
+logs/
