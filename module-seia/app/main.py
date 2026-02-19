@@ -4,10 +4,16 @@ from app.routes.consultas_routes import router as consultas_router
 from app.routes.relatorios_routes import router as relatorios_router
 from app.routes.processos_routes import router as processos_router
 from app.routes.segurancas_routes import router as segurancas_router
+from fastapi.middleware.cors import CORSMiddleware
 
 # application logging
 from app.core.logging import setup_logging
 setup_logging()
+
+origins = [
+    "http://127.0.0.1:9000",
+    "http://localhost:9000",
+]
 
 app = FastAPI(
     title="Module-SEIA",
@@ -15,8 +21,17 @@ app = FastAPI(
     version="1.0.0"
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(requerimentos_router)
 app.include_router(consultas_router)
 app.include_router(relatorios_router)
 app.include_router(processos_router)
 app.include_router(segurancas_router)
+
