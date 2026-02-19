@@ -1,7 +1,12 @@
 # app/routes/requerimentos_routes.py
 
+import logging
 from fastapi import APIRouter
+from app.models.schemas.general_schemas import *
 from app.services.repflor_service import RepflorService
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("requerimentos")
 
 router = APIRouter(
     prefix="/requerimentos",
