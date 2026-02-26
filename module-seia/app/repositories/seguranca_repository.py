@@ -1,5 +1,8 @@
-from typing import List, Optional
+import logging
+from typing import Optional
 from app.core.database import get_db_connection
+
+logger = logging.getLogger("executar_scripts_transacional")
 
 class SegurancaRepository:
     
@@ -37,7 +40,7 @@ class SegurancaRepository:
                     SET ide_perfil = %(novo_perfil)s
                 WHERE u.ide_pessoa_fisica = %(ide_pessoa_fisica)s
             """
-            with get_db_connection([self.desenvolvimento, self.homologacao]) as conn:
+            with get_db_connection(self.homologacao) as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(sql, params)
                     return cursor.rowcount
@@ -52,7 +55,7 @@ class SegurancaRepository:
                 SET ide_status_usuario = %(novo_status)s
             WHERE u.ide_pessoa_fisica = %(ide_pessoa_fisica)s
         """
-        with get_db_connection([self.desenvolvimento, self.homologacao]) as conn:
+        with get_db_connection(self.desenvolvimento) as conn:
             with conn.cursor() as cursor:
                 cursor.execute(sql, params)
                 return cursor.rowcount
@@ -68,11 +71,13 @@ class SegurancaRepository:
             )
             LIMIT 1;
         """
+
         query_update_email = """
             UPDATE pessoa
             SET des_email = %(email)s
             WHERE ide_pessoa = %(ide_pessoa)s;
         """
+
         query_update_perfil = """
             UPDATE usuario
             SET ide_perfil = 2
@@ -123,3 +128,51 @@ class SegurancaRepository:
                 cursor.execute(query, {"cpf": cpf})
                 row = cursor.fetchone()
         return row[0] if row else None
+    
+    def executar_scripts_transacional(self, scripts: list[dict]):
+        total_statements = 0
+        total_linhas_afetadas = 0
+        try:
+            with get_db_connection(self.desenvolvimento) as connection:
+                with connection.cursor() as cursor:
+                    for index_script, script_obj in enumerate(scripts):
+                        nome_arquivo = script_obj["nome_arquivo"]
+                        conteudo = script_obj["conteudo"]
+                        statements = [
+                            s.strip()
+                            for s in conteudo.split(";")
+                            if s.strip()
+                        ]
+                        for index_stmt, statement in enumerate(statements):
+                            try:
+                                cursor.execute(statement)
+                                total_statements += 1
+                                if cursor.rowcount != -1:
+                                    total_linhas_afetadas += cursor.rowcount
+                            except Exception as db_error:
+                                connection.rollback()
+                                logger.error(
+                                    f"Erro no arquivo {nome_arquivo} | "
+                                    f"Statement {index_stmt + 1} | "
+                                    f"{str(db_error)}",
+                                    exc_info=True
+                                )
+                                return {
+                                    "sucesso": False,
+                                    "erro_sql": str(db_error).strip(),
+                                    "arquivo_com_erro": nome_arquivo,
+                                    "statement_index": index_stmt + 1,
+                                    "statement_falhou": statement[:500]
+                                }
+                    connection.commit()
+            return {
+                "sucesso": True,
+                "statements_executados": total_statements,
+                "linhas_afetadas": total_linhas_afetadas
+            }
+        except Exception as e:
+            logger.error(f"Erro inesperado na execução: {str(e)}", exc_info=True)
+            return {
+                "sucesso": False,
+                "erro_inesperado": str(e)
+            }
