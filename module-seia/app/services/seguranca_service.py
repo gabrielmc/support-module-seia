@@ -1,6 +1,10 @@
-import os
+import os, io, zipfile
+import logging
+from fastapi import HTTPException
 from datetime import datetime
 from app.repositories.seguranca_repository import SegurancaRepository
+
+logger = logging.getLogger("script_zip_execution")
 
 class SegurancaService:
     
@@ -8,15 +12,14 @@ class SegurancaService:
         self.repository = SegurancaRepository()
         self.diretorio_saida = "/home/gmuniz/Documentos/artefatos-seia/tickets-SEIA/login-branco/"
     
-    def atualizar_perfil(self, nome_usuario: str):
+    def atualizar_perfil(self, nome_usuario: str, novo_perfil: int):
         resultado = self.repository.buscar_por_nome_usuario(nome_usuario)
         if not resultado:
             return {"mensagem": "Não encontrado"}
 
-        perfil_diretor = 9 # Perfil Diretor
         rows_dsv, rows_hml, script_text = self.repository.gerar_script_update(
             resultado["ide_pessoa_fisica"],
-            novo_perfil = perfil_diretor
+            novo_perfil = novo_perfil
         )
         if rows_dsv == 0 or rows_hml == 0:
             return {
@@ -33,10 +36,8 @@ class SegurancaService:
     
     def incluir_email_usuario(self, usuarios: list):
         resultados = []
-        print(f"Processando inclusão de email para {len(usuarios)} usuários...")
         for usuario in usuarios:
             cpf_limpo = ''.join(filter(str.isdigit, usuario.cpf))
-            print(f"Processando CPF: {cpf_limpo} com email: {usuario.email}")
             atualizado = self.repository.atualizar_email_e_perfil(
                 cpf=cpf_limpo,
                 email=usuario.email
@@ -89,3 +90,80 @@ class SegurancaService:
             f.write(script_final)
 
         return file_path
+
+    async def processar_zip_e_executar(self, file):
+        contents = await file.read()
+        total_arquivos = 0
+        try:
+            with zipfile.ZipFile(io.BytesIO(contents)) as z:
+                # Apenas arquivos .sql
+                sql_files = sorted(
+                    [f for f in z.namelist() if f.endswith(".sql")]
+                )
+                if not sql_files:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Nenhum arquivo .sql encontrado no zip"
+                    )
+                scripts = []
+                for filename in sql_files:
+                    total_arquivos += 1
+                    with z.open(filename) as f:
+                        sql_content = f.read().decode("utf-8")
+                        self._validar_sql(sql_content)
+                        scripts.append({
+                            "nome_arquivo": filename,
+                            "conteudo": sql_content
+                        })
+
+                print(f"Total de arquivos SQL encontrados: {total_arquivos}")
+                # Executa tudo dentro de uma transação
+                resultado = self.repository.executar_scripts_transacional(scripts)
+                # 🔴 Se houve erro SQL controlado
+                if not resultado.get("sucesso"):
+                    logger.warning(
+                        f"Erro controlado na execução do pacote: {resultado}"
+                    )
+                    return {
+                        "sucesso": False,
+                        "arquivos_processados": total_arquivos,
+                        **resultado
+                    }
+
+                # ✅ Se executou com sucesso
+                logger.info(
+                    f"Execução finalizada | Arquivos: {total_arquivos} | "
+                    f"Statements: {resultado['statements_executados']} | "
+                    f"Linhas afetadas: {resultado['linhas_afetadas']}"
+                )
+                return {
+                    "sucesso": True,
+                    "arquivos_processados": total_arquivos,
+                    "statements_executados": resultado["statements_executados"],
+                    "linhas_afetadas": resultado["linhas_afetadas"]
+                }
+        except Exception as e:
+            logger.error(
+                f"Erro inesperado ao executar scripts do zip: {str(e)}",
+                exc_info=True
+            )
+            return {
+                "sucesso": False,
+                "erro_inesperado": "Erro interno inesperado ao processar o pacote."
+            }
+
+    def _validar_sql(self, sql: str):
+        sql_upper = sql.upper()
+        comandos_proibidos = [
+            "DROP DATABASE",
+            "ALTER SYSTEM",
+            "TRUNCATE DATABASE",
+            "DELETE ",
+            "DROP TABLE"
+        ]
+        for comando in comandos_proibidos:
+            if comando in sql_upper:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Comando proibido detectado: {comando}"
+                )
