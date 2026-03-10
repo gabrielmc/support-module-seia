@@ -4,6 +4,8 @@ from app.routes.consultas_routes import router as consultas_router
 from app.routes.relatorios_routes import router as relatorios_router
 from app.routes.processos_routes import router as processos_router
 from app.routes.segurancas_routes import router as segurancas_router
+from app.routes.packages_routes import router as packages_routes
+from app.routes.monitoramentos_routes import router as monitoramentos_router
 from fastapi.middleware.cors import CORSMiddleware
 
 # application logging
@@ -34,4 +36,6 @@ app.include_router(consultas_router)
 app.include_router(relatorios_router)
 app.include_router(processos_router)
 app.include_router(segurancas_router)
+app.include_router(packages_routes)
+app.include_router(monitoramentos_router)
 
