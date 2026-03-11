@@ -1,6 +1,8 @@
+import logging
 from typing import Optional
 from app.repositories.processo_repository import ProcessoRepository
 
+logger = logging.getLogger("processo_service")
 
 class ProcessoService:
 
@@ -9,8 +11,8 @@ class ProcessoService:
         try:
             return ProcessoRepository().removendo_status_anterior(tramitacao=tramitacao)
         except Exception as e:
-            print(f"Erro ao remover status anterior: {e}")
-            raise e
+            logger.error(f"Erro em removendo_status_anterior: {str(e)}", exc_info=True)
+            return None
     
     @staticmethod 
     def excluir_requerimento_logicamente(requerente: str, cpf_cnpj: str, imovel: str):
@@ -43,5 +45,8 @@ class ProcessoService:
                 "mensagem": "Requerimento excluído logicamente com sucesso"
             }
         except Exception as e:
-            print(f"Erro ao excluir requerimento logicamente: {e}")
-            raise e
+            logger.error(f"Erro em excluir_requerimento_imovel: {str(e)}", exc_info=True)
+            return {
+                "sucesso": False,
+                "mensagem": "Ocorreu um erro ao tentar excluir o requerimento."
+            }
