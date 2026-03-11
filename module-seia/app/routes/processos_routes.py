@@ -1,7 +1,7 @@
 # app/routes/processos_routes.py
 
-import logging
 import re
+import logging
 from fastapi import APIRouter
 from app.services.processo_service import ProcessoService
 from app.models.schemas.general_schemas import *
@@ -20,9 +20,7 @@ async def alterar_status_controle_tramitacao(controle_tramitacao: str):
         return service
     except Exception as e:
         logger.warning(f"EXCEPTION - POST - /processo[params] erro : {e}")
-        print(f"Erro ao alterar status controle tramitacao: {e}")
         return {"error": str(e)}
-
 
 @router.post("/cefir/excluir-duplicado")
 async def excluir_requerimento_duplicado(payload: ExcluirRequerimentoLogico):
@@ -37,6 +35,4 @@ async def excluir_requerimento_duplicado(payload: ExcluirRequerimentoLogico):
         return service
     except Exception as e:
         logger.warning(f"EXCEPTION - POST - /cefir/excluir-duplicado erro : {e}")
-        print(f"Erro ao excluir requerimento duplicado: {e}")
         return {"error": str(e)}
-        #raise HTTPException(status_code=500, detail=str(e))
