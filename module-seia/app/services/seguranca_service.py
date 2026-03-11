@@ -13,45 +13,59 @@ class SegurancaService:
         self.diretorio_saida = "/home/gmuniz/Documentos/artefatos-seia/tickets-SEIA/login-branco/"
     
     def atualizar_perfil(self, nome_usuario: str, novo_perfil: int):
-        resultado = self.repository.buscar_por_nome_usuario(nome_usuario)
-        if not resultado:
-            return {"mensagem": "Não encontrado"}
+        try:
+            resultado = self.repository.buscar_por_nome_usuario(nome_usuario)
+            if not resultado:
+                return {"mensagem": "Não encontrado"}
 
-        rows_dsv, rows_hml, script_text = self.repository.gerar_script_update(
-            resultado["ide_pessoa_fisica"],
-            novo_perfil = novo_perfil
-        )
-        if rows_dsv == 0 or rows_hml == 0:
+            rows_dsv, rows_hml, script_text = self.repository.gerar_script_update(
+                resultado["ide_pessoa_fisica"],
+                novo_perfil = novo_perfil
+            )
+            if rows_dsv == 0 or rows_hml == 0:
+                return {
+                    "sucesso": False,
+                    "mensagem": "Falha ao atualizar os status nos ambientes"
+                }
+            return {
+                "sucesso": True,
+                "ambiente": "DSV → HML",
+                "linhas_dsv": rows_dsv,
+                "linhas_hml": rows_hml,
+                "script": script_text
+            }
+        except Exception as e:
+            logger.error(f"Erro em atualizar_perfil: {str(e)}", exc_info=True)
             return {
                 "sucesso": False,
-                "mensagem": "Falha ao atualizar os status nos ambientes"
+                "mensagem": "Ocorreu um erro ao atualizar o perfil do usuário."
             }
-        return {
-            "sucesso": True,
-            "ambiente": "DSV → HML",
-            "linhas_dsv": rows_dsv,
-            "linhas_hml": rows_hml,
-            "script": script_text
-        }
     
     def incluir_email_usuario(self, usuarios: list):
-        resultados = []
-        for usuario in usuarios:
-            cpf_limpo = ''.join(filter(str.isdigit, usuario.cpf))
-            atualizado = self.repository.atualizar_email_e_perfil(
-                cpf=cpf_limpo,
-                email=usuario.email
-            )
-            resultados.append({
-                "cpf": cpf_limpo,
-                "email": usuario.email,
-                "atualizado": atualizado
-            })
-        return {
-            "sucesso": True,
-            "total_processados": len(resultados),
-            "detalhes": resultados
-        }
+        try:
+            resultados = []
+            for usuario in usuarios:
+                cpf_limpo = ''.join(filter(str.isdigit, usuario.cpf))
+                atualizado = self.repository.atualizar_email_e_perfil(
+                    cpf=cpf_limpo,
+                    email=usuario.email
+                )
+                resultados.append({
+                    "cpf": cpf_limpo,
+                    "email": usuario.email,
+                    "atualizado": atualizado
+                })
+            return {
+                "sucesso": True,
+                "total_processados": len(resultados),
+                "detalhes": resultados
+            }
+        except Exception as e:
+            logger.error(f"Erro em incluir_email_usuario: {str(e)}", exc_info=True)
+            return {
+                "sucesso": False,
+                "mensagem": "Ocorreu um erro ao atualizar os usuários."
+            }
         
     def gerar_script_email_por_cpf(self, usuarios: list):
         os.makedirs(self.diretorio_saida, exist_ok=True)
@@ -116,7 +130,6 @@ class SegurancaService:
                             "conteudo": sql_content
                         })
 
-                print(f"Total de arquivos SQL encontrados: {total_arquivos}")
                 # Executa tudo dentro de uma transação
                 resultado = self.repository.executar_scripts_transacional(scripts)
                 # 🔴 Se houve erro SQL controlado
