@@ -3,6 +3,7 @@ from typing import List, Optional
 from app.core.database import get_db_connection
 from app.core.config import settings
 from requests.auth import HTTPDigestAuth
+from datetime import datetime
 
 logger = logging.getLogger("consulta_repository")
 
@@ -135,3 +136,50 @@ class ConsultaRepository:
             password = settings.JBOSS_PASS
         
         return user, password
+    
+    def monitorar_atualizacao_banco(self):
+        connection = None
+        cursor = None
+        try:
+            sql = """
+                SELECT 
+                    ct.dtc_tramitacao::date AS Data_Ultima_Tramitacao,
+                    r.dtc_criacao::date AS Data_Ultimo_Requeirmento,
+                    CASE 
+                        WHEN ct.dtc_tramitacao::date = r.dtc_criacao::date
+                        THEN 'DATAS IGUAIS'
+                        ELSE 'DATAS DIFERENTES'
+                    END AS comparacao
+                FROM 
+                    (SELECT dtc_tramitacao 
+                    FROM controle_tramitacao 
+                    ORDER BY dtc_tramitacao DESC 
+                    LIMIT 1) ct,
+                    (SELECT dtc_criacao 
+                    FROM requerimento 
+                    ORDER BY dtc_criacao DESC 
+                    LIMIT 1) r;
+            """
+            with get_db_connection(self.desenvolvimento) as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(sql)
+                    resultado = cursor.fetchone()
+                    if resultado:
+                        data_tramitacao = resultado[0]
+                        comparacao = resultado[2]
+                        
+                        if comparacao == 'DATAS IGUAIS':
+                            dias_desatualizado = (datetime.now().date() - data_tramitacao).days if data_tramitacao else None
+                            return {
+                                "Data_Ultima_Tramitacao": data_tramitacao.strftime("%d/%m/%Y") if data_tramitacao else None,
+                                "Dias_Desatualizado": dias_desatualizado
+                            }
+                    return None
+        except Exception as e:
+            logger.error(f"Erro em monitorar_atualizacao_banco: {str(e)}", exc_info=True)
+            return None
+        finally:
+            if cursor:
+                cursor.close()
+            if connection:
+                connection.close()
