@@ -78,6 +78,13 @@ DATABASE_HML_NAME=seia_hml
 DATABASE_HML_USER=usuario
 DATABASE_HML_PASSWORD=senha
 
+# Banco de Dados - Treinamento (Treino)
+DATABASE_TREINAMENTO_HOST=localhost
+DATABASE_TREINAMENTO_PORT=5432
+DATABASE_TREINAMENTO_NAME=seia_hml
+DATABASE_TREINAMENTO_USER=usuario
+DATABASE_TREINAMENTO_PASSWORD=senha
+
 # Configurações Adicionais
 DEBUG=True
 LOG_LEVEL=INFO
@@ -86,5 +93,6 @@ LOG_LEVEL=INFO
 ▶️ Comando para iniciar a API:
 
 ```bash
+cd module-seia/ #Onde está a pasta -> app 
 python -m uvicorn app.main:app --host 0.0.0.0 --port 9000 --reload
 ```
