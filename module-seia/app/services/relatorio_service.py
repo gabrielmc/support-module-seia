@@ -1,22 +1,32 @@
-from app.repositories.relatorio_repository import RelatorioRepository
+import logging
+from app.repositories.relatorios_repository import RelatoriosRepository
+
+logger = logging.getLogger("relatorio_service")
 
 class RelatorioService:
     
     def __init__(self):
-        self.repository = RelatorioRepository()
+        self.repository = RelatoriosRepository()
     
     def relatorio_uc(self, periodo: str):
-        resultado = self.repository.busca_zoneamento_uc(periodo)
-        if not resultado or not resultado.get("dados"):
+        try:
+            resultado = self.repository.busca_zoneamento_uc(periodo)
+            if not resultado or not resultado.get("dados"):
+                return {
+                    "sucesso": False,
+                    "mensagem": "Não encontrado",
+                    "ambiente": "HML"
+                }
+            return {
+                "sucesso": True,
+                "ambiente": "HML",
+                "colunas": resultado["colunas"],
+                "dados": resultado["dados"]
+            }
+        except Exception as e:
+            logger.error(f"Erro em relatorio_uc: {str(e)}", exc_info=True)
             return {
                 "sucesso": False,
-                "mensagem": "Não encontrado",
+                "mensagem": "Ocorreu um erro ao gerar o relatório.",
                 "ambiente": "HML"
             }
-
-        return {
-            "sucesso": True,
-            "ambiente": "HML",
-            "colunas": resultado["colunas"],
-            "dados": resultado["dados"]
-        }

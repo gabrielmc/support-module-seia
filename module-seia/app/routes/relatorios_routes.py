@@ -11,7 +11,6 @@ from fastapi import UploadFile, File, HTTPException
 from openpyxl.styles import Alignment, Font
 from app.services.relatorio_service import RelatorioService
 
-
 router = APIRouter(
     prefix="/relatorios",
     tags=["RELATÓRIO"]
@@ -27,7 +26,7 @@ def listar_relatorios(periodo: str):
         dados_relatorios = RelatorioService().relatorio_uc(data_fomatada)
         if not dados_relatorios:
             raise HTTPException(status_code=404, detail="Nenhum dado encontrado")
-        
+
         # Converte para DataFrame
         df = pd.DataFrame(
             dados_relatorios["dados"],
@@ -48,11 +47,11 @@ def listar_relatorios(periodo: str):
             "coordenadas": "Coordenadas geográficas"
         }
         df.rename(columns=colunas_map, inplace=True)
-        
+
         # Reordena as colunas exatamente na ordem solicitada
         ordem_colunas = list(colunas_map.values())
         df = df[[col for col in ordem_colunas if col in df.columns]]
-        
+
         #Cria o arquivo Excel em memória
         output = BytesIO()
         with pd.ExcelWriter(output, engine="openpyxl") as writer:
@@ -94,7 +93,6 @@ def listar_relatorios(periodo: str):
             )
     except Exception as e:
         logger.warning(f"EXCEPTION - GET - /zoneamento-UC/[periodo] erro : {e}")
-        print(f"Erro ao gerar relatório: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/zoneamento-UC/csv-to-xlsx")
@@ -180,7 +178,6 @@ def converter_csv_para_excel(arquivo: UploadFile = File(...)):
         )
     except Exception as e:
         logger.warning(f"EXCEPTION - POST - /zoneamento-UC/csv-to-xlsx erro : {e}")
-        print(f"Erro ao converter CSV: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/zoneamento-UC/xlsx-corrigir-coordenadas")
@@ -258,5 +255,4 @@ def corrigir_xlsx_coordenadas(arquivo: UploadFile = File(...)):
         )
     except Exception as e:
         logger.warning(f"EXCEPTION - POST - /zoneamento-UC/xlsx-corrigir-coordenadas erro : {e}")
-        print(f"Erro ao corrigir XLSX: {e}")
         raise HTTPException(status_code=500, detail=str(e))

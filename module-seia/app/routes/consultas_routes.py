@@ -31,7 +31,6 @@ async def registrar_retorno(arquivo: UploadFile = File(...)):
         }
     except Exception as e:
         logger.warning(f"EXCEPTION - POST - /averiguar-retorno erro : {e}")
-        print(f"Erro ao alterar status controle tramitacao: {e}")
         return {"error": str(e)}
 
 @router.get("/boletos")
@@ -54,5 +53,4 @@ async def consultar_boletos(
         }
     except Exception as e:
         logger.warning(f"EXCEPTION - GET - /boletos erro : {e}")
-        print(f"Erro ao alterar status controle tramitacao: {e}")
         return {"error": str(e)}

@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
+from typing import List
 
 
 class Settings(BaseSettings):
@@ -29,6 +30,8 @@ class Settings(BaseSettings):
     APP_PORT: int = 9000
     LOG_LEVEL: str = "INFO"
     
+    # ===== CORS =====
+    CORS_ORIGINS: List[str] = []
     
     # ===== JBOSS =====
     JBOSS_USER: str
