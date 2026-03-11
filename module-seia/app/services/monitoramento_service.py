@@ -1,6 +1,8 @@
+import logging
 from app.core.config import settings
 from app.repositories.consulta_repository import ConsultaRepository
 
+logger = logging.getLogger("monitoramento_service")
 
 class MonitoramentoService:
 
@@ -20,11 +22,13 @@ class MonitoramentoService:
                 for chave, url in ambientes.items()
             }
         except Exception as e:
-            print(f"Erro ao monitorar status de requerimentos: {e}")
-    
+            logger.error(f"Erro em excluir_requerimento_imovel: {str(e)}", exc_info=True)
+            return None
+
     @staticmethod
     def monitorar_atualizacao_banco():
         try:
             return ConsultaRepository().monitorar_atualizacao_banco()
         except Exception as e:
-            print(f"Erro ao monitorar status de requerimentos: {e}")
+            logger.error(f"Erro em excluir_requerimento_imovel: {str(e)}", exc_info=True)
+            return None
