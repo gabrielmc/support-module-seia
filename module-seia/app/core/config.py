@@ -16,6 +16,13 @@ class Settings(BaseSettings):
     DATABASE_HML_NAME: str
     DATABASE_HML_USER: str
     DATABASE_HML_PASSWORD: str
+    
+    # ===== DATABASE - TREINAMENTO =====
+    DATABASE_TREINAMENTO_HOST: str
+    DATABASE_TREINAMENTO_PORT: int = 5432
+    DATABASE_TREINAMENTO_NAME: str
+    DATABASE_TREINAMENTO_USER: str
+    DATABASE_TREINAMENTO_PASSWORD: str
 
     # ===== APP =====
     APP_HOST: str = "0.0.0.0"
