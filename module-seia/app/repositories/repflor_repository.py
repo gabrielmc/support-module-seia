@@ -1,4 +1,7 @@
+import logging
 from app.core.database import get_db_connection
+
+logger = logging.getLogger("repflor_repository")
 
 class RepflorRepository:
     
@@ -6,6 +9,8 @@ class RepflorRepository:
     homologacao = "HML"
 
     def buscar_por_identificador(self, identificador: str) -> dict | None:
+        connection = None
+        cursor = None
         try:
             identificador = identificador.strip()            
             sql = """
@@ -33,46 +38,56 @@ class RepflorRepository:
                 "ide_status_requerimento": row[1]
             }
         except Exception as e:
-            print(f"Erro ao buscar identificador: {e}")
-            raise e
+            logger.error(f"Erro em buscar_por_identificador: {str(e)}", exc_info=True)
+            return None
+        finally:
+            if cursor:
+                cursor.close()
+            if connection:
+                connection.close()
         
-    def _atualizar_status_em_ambiente(self, ambiente: str, id_requerimento: int, novo_status: int) -> int:
-        """
-        Executa o update em um ambiente específico (DSV ou HML)
-        Retorna quantidade de linhas afetadas
-        """
-        sql = """
-            UPDATE tramitacao_requerimento
-            SET ide_status_requerimento = %(novo_status)s
-            WHERE ide_tramitacao_requerimento = %(id_requerimento)s;
-        """
-        with get_db_connection(ambiente) as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    sql,
-                    {
-                        "id_requerimento": id_requerimento,
-                        "novo_status": novo_status
-                    }
-                )
-                rows = cursor.rowcount
-
-            if rows == 0:
-                conn.rollback()
-            else:
-                conn.commit()
-        return rows
+    def atualizar_status_em_ambiente(self, ambiente: str, id_requerimento: int, novo_status: int) -> int:
+        connection = None
+        cursor = None
+        try:
+            sql = """
+                UPDATE tramitacao_requerimento
+                SET ide_status_requerimento = %(novo_status)s
+                WHERE ide_tramitacao_requerimento = %(id_requerimento)s;
+            """
+            with get_db_connection(ambiente) as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(
+                        sql,
+                        {
+                            "id_requerimento": id_requerimento,
+                            "novo_status": novo_status
+                        }
+                    )
+                    rows = cursor.rowcount
+                if rows == 0:
+                    conn.rollback()
+                else:
+                    conn.commit()
+            return rows
+        except Exception as e:
+            logger.error(f"Erro em atualizar_status_em_ambiente: {str(e)}", exc_info=True)
+            return None
+        finally:
+            if cursor:
+                cursor.close()
+            if connection:
+                connection.close()
     
     def atualizar_status_dsv_hml(self, id_requerimento: int, novo_status: int) -> dict:
-        #Atualiza primeiro em DSV e, se tiver sucesso, replica em HML
-        rows_dsv = self._atualizar_status_em_ambiente(
+        rows_dsv = self.atualizar_status_em_ambiente(
             self.desenvolvimento,
             id_requerimento,
             novo_status
         )
         if rows_dsv == 0: return 0
 
-        rows_hml = self._atualizar_status_em_ambiente(
+        rows_hml = self.atualizar_status_em_ambiente(
             self.homologacao,
             id_requerimento,
             novo_status
@@ -83,12 +98,21 @@ class RepflorRepository:
         return rows_dsv, rows_hml
 
     def gerar_script_update(self, id_requerimento: int, novo_status: int) -> str:
-        rows_dsv, rows_hml = self.atualizar_status_dsv_hml(id_requerimento, novo_status)
-        script_text = f"""
-            BEGIN;
-                UPDATE tramitacao_requerimento
-                SET ide_status_requerimento = {novo_status}
-                WHERE ide_tramitacao_requerimento = {id_requerimento};
-            COMMIT;
-        """.strip()
-        return rows_dsv, rows_hml, script_text
+        connection = None
+        cursor = None
+        try:
+            rows_dsv, rows_hml = self.atualizar_status_dsv_hml(id_requerimento, novo_status)
+            script_text = f"""
+                    UPDATE tramitacao_requerimento
+                    SET ide_status_requerimento = {novo_status}
+                    WHERE ide_tramitacao_requerimento = {id_requerimento};
+            """.strip()
+            return rows_dsv, rows_hml, script_text
+        except Exception as e:
+            logger.error(f"Erro em gerar_script_update: {str(e)}", exc_info=True)
+            return None
+        finally:
+            if cursor:
+                cursor.close()
+            if connection:
+                connection.close()
