@@ -2,7 +2,7 @@ import logging
 from typing import Optional
 from app.core.database import get_db_connection
 
-logger = logging.getLogger("executar_scripts_transacional")
+logger = logging.getLogger("seguranca_repository")
 
 class SegurancaRepository:
     
@@ -10,130 +10,201 @@ class SegurancaRepository:
     homologacao = "HML"
     
     def buscar_por_nome_usuario(self, nome_usuario: str) -> Optional[dict]:
-        sql = """
-            SELECT
-                pf.ide_pessoa_fisica,
-                u.ide_perfil
-            FROM pessoa_fisica pf
-            JOIN usuario u ON u.ide_pessoa_fisica = pf.ide_pessoa_fis
-            WHERE pf.nom_pessoa ILIKE %(nome_usuario)s
-        """
-        params = {"nome_usuario": nome_usuario}
-        with get_db_connection([self.desenvolvimento]) as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(sql, params)
-                row = cursor.fetchone()
-                if row:
-                    return {
-                        "ide_pessoa_fisica": row[0],
-                        "ide_perfil": row[1]
-                    }
-        return None
+        connection = None
+        cursor = None
+        try:
+            sql = """
+                SELECT
+                    pf.ide_pessoa_fisica,
+                    u.ide_perfil
+                FROM pessoa_fisica pf
+                JOIN usuario u ON u.ide_pessoa_fisica = pf.ide_pessoa_fis
+                WHERE pf.nom_pessoa ILIKE %(nome_usuario)s
+            """
+            params = {"nome_usuario": nome_usuario}
+            with get_db_connection([self.desenvolvimento]) as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(sql, params)
+                    row = cursor.fetchone()
+                    if row:
+                        return {
+                            "ide_pessoa_fisica": row[0],
+                            "ide_perfil": row[1]
+                        }
+            return None
+        except Exception as e:
+                logger.error(f"Erro em buscar_por_nome_usuario: {str(e)}", exc_info=True)
+                return None
+        finally:
+            if cursor:
+                cursor.close()
+            if connection:
+                connection.close()
 
     def gerar_script_update(self, ide_pessoa_fisica: int, novo_perfil: int):
-        params = {}
-        if ide_pessoa_fisica:
-            params["ide_pessoa_fisica"] = ide_pessoa_fisica
-            params["novo_perfil"] = novo_perfil
+        connection = None
+        cursor = None
+        try:
+            params = {}
+            if ide_pessoa_fisica:
+                params["ide_pessoa_fisica"] = ide_pessoa_fisica
+                params["novo_perfil"] = novo_perfil
+                sql = f"""
+                    UPDATE usuario u
+                        SET ide_perfil = %(novo_perfil)s
+                    WHERE u.ide_pessoa_fisica = %(ide_pessoa_fisica)s
+                """
+                with get_db_connection(self.homologacao) as conn:
+                    with conn.cursor() as cursor:
+                        cursor.execute(sql, params)
+                        return cursor.rowcount
+        except Exception as e:
+            if connection:
+                connection.rollback()
+            logger.error(f"Erro em gerar_script_update: {str(e)}", exc_info=True)
+            return 0
+        finally:
+            if cursor:
+                cursor.close()
+            if connection:
+                connection.close()
+    
+    def atualizar_status_dsv_hml(self, ide_pessoa_fisica: int, novo_status: int):
+        connection = None
+        cursor = None
+        try:
+            params = {
+                "ide_pessoa_fisica": ide_pessoa_fisica,
+                "novo_status": novo_status
+            }
             sql = f"""
                 UPDATE usuario u
-                    SET ide_perfil = %(novo_perfil)s
+                    SET ide_status_usuario = %(novo_status)s
                 WHERE u.ide_pessoa_fisica = %(ide_pessoa_fisica)s
             """
-            with get_db_connection(self.homologacao) as conn:
+            with get_db_connection(self.desenvolvimento) as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(sql, params)
                     return cursor.rowcount
-    
-    def atualizar_status_dsv_hml(self, ide_pessoa_fisica: int, novo_status: int):
-        params = {
-            "ide_pessoa_fisica": ide_pessoa_fisica,
-            "novo_status": novo_status
-        }
-        sql = f"""
-            UPDATE usuario u
-                SET ide_status_usuario = %(novo_status)s
-            WHERE u.ide_pessoa_fisica = %(ide_pessoa_fisica)s
-        """
-        with get_db_connection(self.desenvolvimento) as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(sql, params)
-                return cursor.rowcount
+        except Exception as e:
+            if connection:
+                connection.rollback()
+            logger.error(f"Erro em atualizar_status_dsv_hml: {str(e)}", exc_info=True)
+            return 0
+        finally:
+            if cursor:
+                cursor.close()
+            if connection:
+                connection.close()
     
     def atualizar_email_e_perfil(self, cpf: str, email: str):
-        query_busca = """
-            SELECT P.IDE_PESSOA
-            FROM PESSOA P
-            WHERE P.IDE_PESSOA IN (
-                SELECT PF.IDE_PESSOA_FISICA
-                FROM PESSOA_FISICA PF
-                WHERE PF.NUM_CPF = %(cpf)s
-            )
-            LIMIT 1;
-        """
+        connection = None
+        cursor = None
+        try:
+            query_busca = """
+                SELECT P.IDE_PESSOA
+                FROM PESSOA P
+                WHERE P.IDE_PESSOA IN (
+                    SELECT PF.IDE_PESSOA_FISICA
+                    FROM PESSOA_FISICA PF
+                    WHERE PF.NUM_CPF = %(cpf)s
+                )
+                LIMIT 1;
+            """
 
-        query_update_email = """
-            UPDATE pessoa
-            SET des_email = %(email)s
-            WHERE ide_pessoa = %(ide_pessoa)s;
-        """
+            query_update_email = """
+                UPDATE pessoa
+                SET des_email = %(email)s
+                WHERE ide_pessoa = %(ide_pessoa)s;
+            """
 
-        query_update_perfil = """
-            UPDATE usuario
-            SET ide_perfil = 2
-            WHERE ide_pessoa_fisica = %(ide_pessoa)s;
-        """
+            query_update_perfil = """
+                UPDATE usuario
+                SET ide_perfil = 2
+                WHERE ide_pessoa_fisica = %(ide_pessoa)s;
+            """
 
-        with get_db_connection(self.desenvolvimento) as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query_busca, {"cpf": cpf})
-                row = cursor.fetchone()
-                if not row:
+            with get_db_connection(self.desenvolvimento) as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(query_busca, {"cpf": cpf})
+                    row = cursor.fetchone()
+                    if not row:
+                        return {
+                            "sucesso": False,
+                            "mensagem": "CPF não encontrado."
+                        }
+
+                    ide_pessoa = row[0]
+                    # Atualiza email
+                    cursor.execute(query_update_email, {
+                        "email": email,
+                        "ide_pessoa": ide_pessoa
+                    })
+
+                    # Atualiza perfil
+                    cursor.execute(query_update_perfil, {
+                        "ide_pessoa": ide_pessoa
+                    })
+
                     return {
-                        "sucesso": False,
-                        "mensagem": "CPF não encontrado."
+                        "sucesso": True,
+                        "ide_pessoa": ide_pessoa,
+                        "mensagem": "Email e perfil atualizados com sucesso."
                     }
-
-                ide_pessoa = row[0]
-                # Atualiza email
-                cursor.execute(query_update_email, {
-                    "email": email,
-                    "ide_pessoa": ide_pessoa
-                })
-
-                # Atualiza perfil
-                cursor.execute(query_update_perfil, {
-                    "ide_pessoa": ide_pessoa
-                })
-
-                return {
-                    "sucesso": True,
-                    "ide_pessoa": ide_pessoa,
-                    "mensagem": "Email e perfil atualizados com sucesso."
-                }
+        except Exception as e:
+            if connection:
+                connection.rollback()
+            logger.error(f"Erro em atualizar_email_e_perfil: {str(e)}", exc_info=True)
+            return {
+                "sucesso": False,
+                "mensagem": "Erro ao atualizar dados."
+            }
+        finally:
+            if cursor:
+                cursor.close()
+            if connection:
+                connection.close()   
 
     def buscar_pessoa_por_cpf(self, cpf: str):
-        query = """
-            SELECT P.IDE_PESSOA
-            FROM PESSOA P
-            WHERE P.IDE_PESSOA IN (
-                SELECT PF.IDE_PESSOA_FISICA
-                FROM PESSOA_FISICA PF
-                WHERE PF.NUM_CPF = %(cpf)s
-            )
-            LIMIT 1;
-        """
-        with get_db_connection(self.desenvolvimento) as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, {"cpf": cpf})
-                row = cursor.fetchone()
-        return row[0] if row else None
+        connection = None
+        cursor = None
+        try:
+            query = """
+                SELECT P.IDE_PESSOA
+                FROM PESSOA P
+                WHERE P.IDE_PESSOA IN (
+                    SELECT PF.IDE_PESSOA_FISICA
+                    FROM PESSOA_FISICA PF
+                    WHERE PF.NUM_CPF = %(cpf)s
+                )
+                LIMIT 1;
+            """
+            with get_db_connection(self.desenvolvimento) as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(query, {"cpf": cpf})
+                    row = cursor.fetchone()
+            return row[0] if row else None
+        except Exception as e:
+                if connection:
+                    connection.rollback()
+                logger.error(f"Erro em buscar_pessoa_por_cpf: {str(e)}", exc_info=True)
+                return {
+                    "sucesso": False,
+                    "mensagem": "Erro ao buscar pessoa por CPF."
+                }
+        finally:
+            if cursor:
+                cursor.close()
+            if connection:
+                connection.close()   
     
     def executar_scripts_transacional(self, scripts: list[dict]):
         total_statements = 0
         total_linhas_afetadas = 0
+        connection = None
+        cursor = None
         try:
-            with get_db_connection(self.desenvolvimento) as connection:
+            with get_db_connection(self.homologacao) as connection:
                 with connection.cursor() as cursor:
                     for index_script, script_obj in enumerate(scripts):
                         nome_arquivo = script_obj["nome_arquivo"]
@@ -176,3 +247,8 @@ class SegurancaRepository:
                 "sucesso": False,
                 "erro_inesperado": str(e)
             }
+        finally:
+            if cursor:
+                cursor.close()
+            if connection:
+                connection.close()   
