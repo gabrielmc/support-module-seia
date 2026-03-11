@@ -21,3 +21,10 @@ class MonitoramentoService:
             }
         except Exception as e:
             print(f"Erro ao monitorar status de requerimentos: {e}")
+    
+    @staticmethod
+    def monitorar_atualizacao_banco():
+        try:
+            return ConsultaRepository().monitorar_atualizacao_banco()
+        except Exception as e:
+            print(f"Erro ao monitorar status de requerimentos: {e}")
