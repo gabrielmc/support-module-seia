@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     
     # ===== CORS =====
-    cors_origins: List[str] = []
+    CORS_ORIGINS: List[str] = []
     
     # ===== JBOSS =====
     JBOSS_USER: str
