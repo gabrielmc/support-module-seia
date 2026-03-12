@@ -7,11 +7,11 @@ from app.repositories.seguranca_repository import SegurancaRepository
 logger = logging.getLogger("script_zip_execution")
 
 class SegurancaService:
-    
+
     def __init__(self):
         self.repository = SegurancaRepository()
         self.diretorio_saida = "/home/gmuniz/Documentos/artefatos-seia/tickets-SEIA/login-branco/"
-    
+
     def atualizar_perfil(self, nome_usuario: str, novo_perfil: int):
         try:
             resultado = self.repository.buscar_por_nome_usuario(nome_usuario)
@@ -40,7 +40,7 @@ class SegurancaService:
                 "sucesso": False,
                 "mensagem": "Ocorreu um erro ao atualizar o perfil do usuário."
             }
-    
+
     def incluir_email_usuario(self, usuarios: list):
         try:
             resultados = []
@@ -66,14 +66,14 @@ class SegurancaService:
                 "sucesso": False,
                 "mensagem": "Ocorreu um erro ao atualizar os usuários."
             }
-        
+
     def gerar_script_email_por_cpf(self, usuarios: list):
         os.makedirs(self.diretorio_saida, exist_ok=True)
         script_final = ""
         for index, usuario in enumerate(usuarios, start=1):
             cpf_limpo = ''.join(filter(str.isdigit, usuario.cpf))
             ide_pessoa = self.repository.buscar_pessoa_por_cpf(cpf_limpo)
-            
+
             if not ide_pessoa:
                 continue  # ignora CPF não encontrado
             email_seguro = usuario.email.replace("'", "''")

@@ -18,14 +18,14 @@ class ExcluirRequerimentoLogico(BaseModel):
     requerente: str = Field(..., example="JOÃO DA SILVA")
     cpf_cnpj: str = Field(..., example="12345678901")
     imovel: str = Field(..., example="FAZENDA BOA VISTA")
-    
+
 class UsuarioEmail(BaseModel):
     cpf: str = Field(..., example="08512197560")
     email: str = Field(..., example="usuario@email.com")
 
 class ListaUsuariosEmail(BaseModel):
     usuarios: List[UsuarioEmail]
-    
+
 class UsuarioScriptCPF(BaseModel):
     ticket : str
     cpf: str
@@ -33,3 +33,7 @@ class UsuarioScriptCPF(BaseModel):
 
 class ListaUsuariosCPF(BaseModel):
     usuarios: List[UsuarioScriptCPF]
+
+class UsuarioPerfil(BaseModel):
+    usuario: str = Field(..., example="JOÃO DA SILVA")
+    perfil: int = Field(..., example=9)

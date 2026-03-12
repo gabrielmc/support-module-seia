@@ -4,7 +4,7 @@ from app.core.database import get_db_connection
 logger = logging.getLogger("repflor_repository")
 
 class RepflorRepository:
-    
+
     desenvolvimento = "DSV"
     homologacao = "HML"
 
@@ -12,10 +12,10 @@ class RepflorRepository:
         connection = None
         cursor = None
         try:
-            identificador = identificador.strip()            
+            identificador = identificador.strip()
             sql = """
             SELECT * FROM tramitacao_requerimento trq
-            WHERE trq.ide_requerimento in ( 
+            WHERE trq.ide_requerimento in (
                 SELECT rq.ide_requerimento FROM requerimento rq
                 WHERE rq.num_requerimento LIKE %(identificador)s
             )
@@ -45,7 +45,7 @@ class RepflorRepository:
                 cursor.close()
             if connection:
                 connection.close()
-        
+
     def atualizar_status_em_ambiente(self, ambiente: str, id_requerimento: int, novo_status: int) -> int:
         connection = None
         cursor = None
@@ -78,7 +78,7 @@ class RepflorRepository:
                 cursor.close()
             if connection:
                 connection.close()
-    
+
     def atualizar_status_dsv_hml(self, id_requerimento: int, novo_status: int) -> dict:
         rows_dsv = self.atualizar_status_em_ambiente(
             self.desenvolvimento,

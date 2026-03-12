@@ -31,7 +31,7 @@ def listar_relatorios(periodo: str):
         df = pd.DataFrame(
             dados_relatorios["dados"],
             columns=dados_relatorios["colunas"]
-        )     
+        )
         #Mapeamento de colunas (interno → solicitado)
         colunas_map = {
             "processo": "Número do processo",

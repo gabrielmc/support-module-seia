@@ -5,10 +5,10 @@ from app.core.database import get_db_connection
 logger = logging.getLogger("seguranca_repository")
 
 class SegurancaRepository:
-    
+
     desenvolvimento = "DSV"
     homologacao = "HML"
-    
+
     def buscar_por_nome_usuario(self, nome_usuario: str) -> Optional[dict]:
         connection = None
         cursor = None
@@ -68,7 +68,7 @@ class SegurancaRepository:
                 cursor.close()
             if connection:
                 connection.close()
-    
+
     def atualizar_status_dsv_hml(self, ide_pessoa_fisica: int, novo_status: int):
         connection = None
         cursor = None
@@ -96,7 +96,7 @@ class SegurancaRepository:
                 cursor.close()
             if connection:
                 connection.close()
-    
+
     def atualizar_email_e_perfil(self, cpf: str, email: str):
         connection = None
         cursor = None
@@ -163,7 +163,7 @@ class SegurancaRepository:
             if cursor:
                 cursor.close()
             if connection:
-                connection.close()   
+                connection.close()
 
     def buscar_pessoa_por_cpf(self, cpf: str):
         connection = None
@@ -196,8 +196,8 @@ class SegurancaRepository:
             if cursor:
                 cursor.close()
             if connection:
-                connection.close()   
-    
+                connection.close()
+
     def executar_scripts_transacional(self, scripts: list[dict]):
         total_statements = 0
         total_linhas_afetadas = 0
@@ -251,4 +251,4 @@ class SegurancaRepository:
             if cursor:
                 cursor.close()
             if connection:
-                connection.close()   
+                connection.close()

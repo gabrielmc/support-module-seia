@@ -6,7 +6,7 @@ logger = logging.getLogger("processo_repository")
 
 
 class ProcessoRepository:
-    
+
     desenvolvimento = "DSV"
     homologacao = "HML"
 
@@ -44,7 +44,7 @@ class ProcessoRepository:
                 cursor.close()
             if connection:
                 connection.close()
-    
+
     def buscar_requerimento_por_dados(self, requerente: str, cpf_cnpj: str, imovel: str):
         connection = None
         cursor = None
@@ -94,7 +94,7 @@ class ProcessoRepository:
                 cursor.close()
             if connection:
                 connection.close()
-    
+
     def excluir_requerimento(self, ide_requerimento: int):
         connection = None
         cursor = None
@@ -112,7 +112,7 @@ class ProcessoRepository:
                     })
         except Exception as e:
             logger.error(f"Erro em excluir_requerimento: {str(e)}", exc_info=True)
-        finally:            
+        finally:
             if cursor:
                 cursor.close()
             if connection:

@@ -8,7 +8,7 @@ from datetime import datetime
 logger = logging.getLogger("consulta_repository")
 
 class ConsultaRepository:
-    
+
     desenvolvimento = "DSV"
     homologacao = "HML"
 
@@ -84,7 +84,7 @@ class ConsultaRepository:
                 cursor.close()
             if connection:
                 connection.close()
-                
+
     def monitorar_memoria_jboss(self, url: str):
         payload = {
             "operation": "read-resource",
@@ -124,7 +124,7 @@ class ConsultaRepository:
                 exc_info=True
             )
             return {"erro": str(e)}
-        
+
     def definir_jboss_ambientes(self, url: str):
         # Determinar credenciais baseado no ambiente de treinamento
         # TODO melhorar lógica para identificar ambiente, talvez usando regex ou configuração específica
@@ -134,30 +134,29 @@ class ConsultaRepository:
         else:
             user = settings.JBOSS_USER
             password = settings.JBOSS_PASS
-        
         return user, password
-    
+
     def monitorar_atualizacao_banco(self):
         connection = None
         cursor = None
         try:
             sql = """
-                SELECT 
+                SELECT
                     ct.dtc_tramitacao::date AS Data_Ultima_Tramitacao,
                     r.dtc_criacao::date AS Data_Ultimo_Requeirmento,
-                    CASE 
+                    CASE
                         WHEN ct.dtc_tramitacao::date = r.dtc_criacao::date
                         THEN 'DATAS IGUAIS'
                         ELSE 'DATAS DIFERENTES'
                     END AS comparacao
-                FROM 
-                    (SELECT dtc_tramitacao 
-                    FROM controle_tramitacao 
-                    ORDER BY dtc_tramitacao DESC 
+                FROM
+                    (SELECT dtc_tramitacao
+                    FROM controle_tramitacao
+                    ORDER BY dtc_tramitacao DESC
                     LIMIT 1) ct,
-                    (SELECT dtc_criacao 
-                    FROM requerimento 
-                    ORDER BY dtc_criacao DESC 
+                    (SELECT dtc_criacao
+                    FROM requerimento
+                    ORDER BY dtc_criacao DESC
                     LIMIT 1) r;
             """
             with get_db_connection(self.desenvolvimento) as conn:
@@ -167,7 +166,7 @@ class ConsultaRepository:
                     if resultado:
                         data_tramitacao = resultado[0]
                         comparacao = resultado[2]
-                        
+
                         if comparacao == 'DATAS IGUAIS':
                             dias_desatualizado = (datetime.now().date() - data_tramitacao).days if data_tramitacao else None
                             return {

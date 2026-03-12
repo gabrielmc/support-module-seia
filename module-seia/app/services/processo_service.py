@@ -27,7 +27,6 @@ class ProcessoService:
                     "sucesso": False,
                     "mensagem": "Nenhum requerimento encontrado"
                 }
-
             ide_requerimento = resultado["ide_requerimento"]
             ide_requerimento_imovel = resultado["ide_requerimento_imovel"]
             if not ide_requerimento or not ide_requerimento_imovel:

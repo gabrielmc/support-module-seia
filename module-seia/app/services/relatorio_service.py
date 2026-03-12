@@ -1,13 +1,13 @@
 import logging
-from app.repositories.relatorios_repository import RelatoriosRepository
+from app.repositories.relatorio_repository import RelatoriosRepository
 
 logger = logging.getLogger("relatorio_service")
 
 class RelatorioService:
-    
+
     def __init__(self):
         self.repository = RelatoriosRepository()
-    
+
     def relatorio_uc(self, periodo: str):
         try:
             resultado = self.repository.busca_zoneamento_uc(periodo)
