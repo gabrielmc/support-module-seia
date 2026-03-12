@@ -159,21 +159,27 @@ class ConsultaRepository:
                     ORDER BY dtc_criacao DESC
                     LIMIT 1) r;
             """
-            with get_db_connection(self.desenvolvimento) as conn:
+            with get_db_connection(self.homologacao) as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(sql)
                     resultado = cursor.fetchone()
-                    if resultado:
-                        data_tramitacao = resultado[0]
-                        comparacao = resultado[2]
-
-                        if comparacao == 'DATAS IGUAIS':
-                            dias_desatualizado = (datetime.now().date() - data_tramitacao).days if data_tramitacao else None
-                            return {
-                                "Data_Ultima_Tramitacao": data_tramitacao.strftime("%d/%m/%Y") if data_tramitacao else None,
-                                "Dias_Desatualizado": dias_desatualizado
-                            }
-                    return None
+                    if not resultado:
+                        return None
+                    data_tramitacao = resultado[0]
+                    comparacao = resultado[2]
+                    data_formatada = (
+                        data_tramitacao.strftime("%d/%m/%Y")
+                        if data_tramitacao else None
+                    )
+                    dias_desatualizado = (
+                        (datetime.now().date() - data_tramitacao).days
+                        if data_tramitacao else None
+                    )
+                    return {
+                        "Data_Ultima_Tramitacao": data_formatada,
+                        "Dias_Desatualizado": dias_desatualizado,
+                        "Status": "Banco desatualizado" if comparacao == "DATAS IGUAIS" else "Banco atualizado"
+                    }
         except Exception as e:
             logger.error(f"Erro em monitorar_atualizacao_banco: {str(e)}", exc_info=True)
             return None
