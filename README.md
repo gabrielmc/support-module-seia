@@ -10,7 +10,7 @@ Este projeto faz parte do **módulo SEIA**, desenvolvido em **Python** utilizand
 
 ## ⚠️ **Observação importante**:
 
-O projeto principal do SEIA utiliza a porta **8080** (JBoss).  
+O projeto principal do SEIA utiliza a porta **8080** (JBoss).
 Por isso, esta API roda em **outra porta**, evitando conflitos.
 
 ---
@@ -27,7 +27,7 @@ module-seia/
 │ ├── services/             # Regras de negócio
 │ ├── main.py               # Inicialização da aplicação FastAPI
 │ ├── .env.py               # Inserir nessa camada de pastas
-│ └── env-exemple.py        # Exemplo das Variáveis de ambiente 
+│ └── env-exemple.py        # Exemplo das Variáveis de ambiente
 │
 ├── requirements.txt        # Dependências do projeto
 ├── README.md
@@ -93,6 +93,6 @@ LOG_LEVEL=INFO
 ▶️ Comando para iniciar a API:
 
 ```bash
-cd module-seia/ #Onde está a pasta -> app 
+cd module-seia/ #Onde está a pasta -> app
 python -m uvicorn app.main:app --host 0.0.0.0 --port 9000 --reload
 ```
