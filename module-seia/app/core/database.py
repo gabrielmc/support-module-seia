@@ -2,6 +2,7 @@ import psycopg2
 from contextlib import contextmanager
 from app.core.config import settings
 
+
 @contextmanager
 def get_db_connection(ambiente: str):
     if ambiente == "DSV":
@@ -12,7 +13,6 @@ def get_db_connection(ambiente: str):
             user=settings.DATABASE_DSV_USER,
             password=settings.DATABASE_DSV_PASSWORD,
         )
-
     elif ambiente == "HML":
         conn = psycopg2.connect(
             host=settings.DATABASE_HML_HOST,
@@ -21,9 +21,16 @@ def get_db_connection(ambiente: str):
             user=settings.DATABASE_HML_USER,
             password=settings.DATABASE_HML_PASSWORD,
         )
+    elif ambiente == "TRT":
+        conn = psycopg2.connect(
+            host=settings.DATABASE_TREINAMENTO_HOST,
+            port=settings.DATABASE_TREINAMENTO_PORT,
+            dbname=settings.DATABASE_TREINAMENTO_NAME,
+            user=settings.DATABASE_TREINAMENTO_USER,
+            password=settings.DATABASE_TREINAMENTO_PASSWORD,
+        )
     else:
         raise ValueError("Ambiente inválido. Use: DSV ou HML")
-
     try:
         yield conn
         conn.commit()
