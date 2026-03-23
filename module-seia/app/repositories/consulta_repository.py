@@ -137,8 +137,6 @@ class ConsultaRepository:
         return user, password
 
     def monitorar_atualizacao_banco(self):
-        connection = None
-        cursor = None
         try:
             sql = """
                 SELECT
@@ -150,41 +148,46 @@ class ConsultaRepository:
                         ELSE 'DATAS DIFERENTES'
                     END AS comparacao
                 FROM
-                    (SELECT dtc_tramitacao
-                    FROM controle_tramitacao
-                    ORDER BY dtc_tramitacao DESC
-                    LIMIT 1) ct,
-                    (SELECT dtc_criacao
-                    FROM requerimento
-                    ORDER BY dtc_criacao DESC
-                    LIMIT 1) r;
+                    (
+                        SELECT dtc_tramitacao
+                        FROM controle_tramitacao
+                        ORDER BY dtc_tramitacao DESC
+                        LIMIT 1
+                    ) ct,
+                    (
+                        SELECT dtc_criacao
+                        FROM requerimento
+                        ORDER BY dtc_criacao DESC
+                        LIMIT 1
+                    ) r;
             """
-            with get_db_connection(self.homologacao) as conn:
-                with conn.cursor() as cursor:
-                    cursor.execute(sql)
-                    resultado = cursor.fetchone()
-                    if not resultado:
-                        return None
-                    data_tramitacao = resultado[0]
-                    comparacao = resultado[2]
-                    data_formatada = (
-                        data_tramitacao.strftime("%d/%m/%Y")
-                        if data_tramitacao else None
-                    )
-                    dias_desatualizado = (
-                        (datetime.now().date() - data_tramitacao).days
-                        if data_tramitacao else None
-                    )
-                    return {
-                        "Data_Ultima_Tramitacao": data_formatada,
-                        "Dias_Desatualizado": dias_desatualizado,
-                        "Status": "Banco desatualizado" if comparacao == "DATAS IGUAIS" else "Banco atualizado"
-                    }
+            ambientes = ["DSV", "HML", "TRT"]
+            resultados = []
+            for ambiente_nome in ambientes:
+                with get_db_connection(ambiente_nome) as conn:
+                    with conn.cursor() as cursor:
+                        cursor.execute(sql)
+                        resultado = cursor.fetchone()
+                        if not resultado:
+                            continue
+                        data_tramitacao = resultado[0]
+                        data_formatada = (
+                            data_tramitacao.strftime("%d/%m/%Y")
+                            if data_tramitacao else None
+                        )
+                        dias_desatualizado = (
+                            (datetime.now().date() - data_tramitacao).days
+                            if data_tramitacao else None
+                        )
+                        resultados.append({
+                            "ambiente": ambiente_nome,
+                            "data_ultima_tramitacao": data_formatada,
+                            "dias_desatualizado": dias_desatualizado
+                        })
+            return resultados
         except Exception as e:
-            logger.error(f"Erro em monitorar_atualizacao_banco: {str(e)}", exc_info=True)
+            logger.error(
+                f"Erro em monitorar_atualizacao_banco: {str(e)}",
+                exc_info=True
+            )
             return None
-        finally:
-            if cursor:
-                cursor.close()
-            if connection:
-                connection.close()
