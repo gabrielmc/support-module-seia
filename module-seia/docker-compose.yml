@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  module-seia-api:
+    build: .
+    container_name: module-seia-api
+    ports:
+      - "9000:9000"
+    env_file:
+      - .:app/.env
+    volumes:
+      - .:/app
+    restart: always
