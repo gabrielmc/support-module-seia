@@ -171,7 +171,7 @@ class SegurancaService:
             "DROP DATABASE",
             "ALTER SYSTEM",
             "TRUNCATE DATABASE",
-            "DELETE ",
+            #"DELETE ", -- DELETE é permitido, cuidado para não usar sem WHERE
             "DROP TABLE"
         ]
         for comando in comandos_proibidos:
