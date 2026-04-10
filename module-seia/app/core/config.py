@@ -31,7 +31,11 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
 
     # ===== CORS =====
-    CORS_ORIGINS: List[str] = []
+    CORS_ORIGINS: str = ""
+
+    @property
+    def cors_origins_list(self) -> List[str]:
+        return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin]
 
     # ===== JBOSS =====
     JBOSS_USER: str
@@ -42,6 +46,8 @@ class Settings(BaseSettings):
     JBOSS_URL_TREINAMENTO: str
     JBOSS_USER_TREINAMENTO: str
     JBOSS_PASS_TREINAMENTO: str
+
+    VERSION: str = "2.0.0"
 
     model_config = SettingsConfigDict(
         env_file=Path(__file__).resolve().parent.parent / ".env",
