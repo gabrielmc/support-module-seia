@@ -22,5 +22,17 @@ async def executar_scripts_zip(file: UploadFile = File(...)):
         return resultado
     except Exception as e:
         logger.warning(f"EXCEPTION - POST - /executar-scripts-zip erro : {e}")
-        print(f"Erro ao executar scripts zip: {e}")
         return {"sucesso": False, "error": str(e)}
+
+
+@router.post("/validar-imagem-zip")
+async def validar_imagem_zip(file: UploadFile = File(...)):
+    logger.info("POST /validar-imagem-zip")
+    try:
+        if not file.filename.endswith(".zip"):
+            raise HTTPException(tatus_code=400,detail="Arquivo deve ser .zip")
+        resultado = await SegurancaService().validar_zip_persistence(file)
+        return resultado
+    except Exception as e:
+        logger.warning(f"Erro na validação do zip: {e}")
+        return { "sucesso": False, "erro": str(e)}
