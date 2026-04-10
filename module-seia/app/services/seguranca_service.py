@@ -181,7 +181,7 @@ class SegurancaService:
                     detail=f"Comando proibido detectado: {comando}"
                 )
 
-    async def validar_zip_persistence(self, file):
+    async def validar_pacote_persistence(self, file):
         contents = await file.read()
         try:
             with zipfile.ZipFile(io.BytesIO(contents)) as z:
