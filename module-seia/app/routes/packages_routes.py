@@ -25,14 +25,17 @@ async def executar_scripts_zip(file: UploadFile = File(...)):
         return {"sucesso": False, "error": str(e)}
 
 
-@router.post("/validar-imagem-zip")
-async def validar_imagem_zip(file: UploadFile = File(...)):
-    logger.info("POST /validar-imagem-zip")
+@router.post("/validar-imagem")
+async def validar_imagem(file: UploadFile = File(...)):
+    logger.info("POST /validar-imagem")
     try:
-        if not file.filename.endswith(".zip"):
-            raise HTTPException(tatus_code=400,detail="Arquivo deve ser .zip")
-        resultado = await SegurancaService().validar_zip_persistence(file)
+        if not (file.filename.endswith(".zip") or file.filename.endswith(".war")):
+            raise HTTPException(
+                status_code=400,
+                detail="Arquivo deve ser .zip ou .war"
+            )
+        resultado = await SegurancaService().validar_pacote_persistence(file)
         return resultado
     except Exception as e:
-        logger.warning(f"Erro na validação do zip: {e}")
-        return { "sucesso": False, "erro": str(e)}
+        logger.warning(f"Erro na validação pacote: {e}")
+        return {"sucesso": False, "erro": str(e)}
