@@ -1,6 +1,6 @@
 import logging, requests
 from typing import List, Optional
-from app.core.database import get_db_connection
+from app.core.database.conn_base import get_db_connection
 from app.core.config import settings
 from requests.auth import HTTPDigestAuth
 from datetime import datetime

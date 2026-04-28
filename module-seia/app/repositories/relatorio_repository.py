@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from app.core.database import get_db_connection
+from app.core.database.conn_base import get_db_connection
 
 logger = logging.getLogger("relatorios_repository")
 

@@ -1,6 +1,6 @@
 import logging
 from typing import Optional
-from app.core.database import get_db_connection
+from app.core.database.conn_base import get_db_connection
 
 logger = logging.getLogger("processo_repository")
 
