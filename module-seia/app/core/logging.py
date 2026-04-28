@@ -10,15 +10,29 @@ def setup_logging():
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
 
-    # Remove handlers antigos (evita duplicação)
+    # Remove handlers antigos
     if logger.hasHandlers():
         logger.handlers.clear()
 
-    file_handler = logging.FileHandler(log_file)
-    file_handler.setLevel(logging.INFO)
+    log_format = "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+    date_format = "%d/%m/%Y %H:%M"
     formatter = logging.Formatter(
-        "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+        fmt=log_format,
+        datefmt=date_format
     )
 
+    # =========================
+    # Handler para arquivo
+    # =========================
+    file_handler = logging.FileHandler(log_file, encoding="utf-8")
+    file_handler.setLevel(logging.INFO)
     file_handler.setFormatter(formatter)
+
     logger.addHandler(file_handler)
+
+
+# ============================================
+# CRIA O LOGGER GLOBAL PARA IMPORT
+# ============================================
+# Executa a configuração automaticamente
+logger = setup_logging()

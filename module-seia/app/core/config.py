@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     DATABASE_TREINAMENTO_USER: str
     DATABASE_TREINAMENTO_PASSWORD: str
 
+    # ===== USUÁRIO MASTER (sem banco) =====
+    MASTER_USERNAME: str = ""
+    MASTER_PASSWORD: str = ""
+
     # ===== APP =====
     APP_HOST: str = "0.0.0.0"
     APP_PORT: int = 9000
@@ -36,6 +40,8 @@ class Settings(BaseSettings):
     @property
     def cors_origins_list(self) -> List[str]:
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin]
+
+    allow_origin_regex: str = r"https?://(10\.2\.128\.\d{1,3}|localhost|127\.0\.0\.1)(:\d+)?"
 
     # ===== JBOSS =====
     JBOSS_USER: str
