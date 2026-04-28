@@ -1,4 +1,5 @@
 # app/core/db_pool.py
+
 from psycopg2 import pool
 from contextlib import contextmanager
 from app.core.config import settings
