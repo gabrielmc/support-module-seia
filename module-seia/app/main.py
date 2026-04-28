@@ -1,14 +1,16 @@
 from fastapi import FastAPI
 from app.core.config import settings
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes.requerimentos_routes import router as requerimentos_router
-from app.routes.consultas_routes import router as consultas_router
 from app.routes.relatorios_routes import router as relatorios_router
-from app.routes.processos_routes import router as processos_router
-from app.routes.segurancas_routes import router as segurancas_router
 from app.routes.packages_routes import router as packages_routes
 from app.routes.monitoramentos_routes import router as monitoramentos_router
-
+from app.routes.autenticacao_routes import router as auth_router
+'''
+from app.routes.consultas_routes import router as consultas_router
+from app.routes.requerimentos_routes import router as requerimentos_router
+from app.routes.segurancas_routes import router as segurancas_router
+from app.routes.processos_routes import router as processos_router
+'''
 
 # application logging
 from app.core.logging import setup_logging
@@ -24,7 +26,6 @@ app = FastAPI(
 
     # Funcionalidades Principais:
 
-    *   **Consulta Avançada de Dados**: Acesso a informações geoespaciais, como polígonos de biomas e propriedades rurais.
     *   **Relatórios Técnicos**: Geração de relatórios consolidados em formatos CSV e JSON.
     *   **Integração Multi-Ambiente**: Conexão transparente com bancos de dados de Desenvolvimento (DSV) e Homologação (HML).
 
@@ -37,18 +38,16 @@ app = FastAPI(
     """,
     version=settings.VERSION,
     # Novos parâmetros adicionados:
-    terms_of_service="http://exemplo.com/termos/",
-    #contact={
-    #    "name": "Equipe de Sustentação SEIA",
-    #    "url": "http://intranet.empresa.com/suporte-seia",
-    #    "email": "suporte.seia@empresa.com",
-    #},
+    terms_of_service="http://intranet.empresa.com/licencas-seia",
+    contact={
+        "name": "Equipe de Sustentação SEIA",
+        "email": "gabriel.cerqueira@prodeb.ba.gov.br",
+    },
     license_info={
         "name": "Licença Interna - Uso Exclusivo",
         "url": "http://intranet.empresa.com/licencas-seia",
     },
-    docs_url="/docs",          # URL para o Swagger UI (padrão)
-    redoc_url="/redoc",        # URL para o ReDoc (padrão)
+    docs_url="/docs", # URL para o Swagger UI (padrão)
     servers=[
         {"url": "http://localhost:9000", "description": "Ambiente de Desenvolvimento Local"}
         #{"url": "https://seia-dsv.empresa.com", "description": "Ambiente de Desenvolvimento (DSV)"},
@@ -59,15 +58,20 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list, # Configurado para permitir apenas os domínios especificados no .env
+    allow_origin_regex=settings.allow_origin_regex, # Permite localhost e IPs internos
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(auth_router)
 
-app.include_router(requerimentos_router)
-app.include_router(consultas_router)
+
+# [ Rotas sem uso/consumo frequente ]
+#app.include_router(requerimentos_router)
+#app.include_router(consultas_router)
+#app.include_router(processos_router)
+#app.include_router(segurancas_router)
+
 app.include_router(relatorios_router)
-app.include_router(processos_router)
-app.include_router(segurancas_router)
 app.include_router(packages_routes)
 app.include_router(monitoramentos_router)
