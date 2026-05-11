@@ -3,13 +3,12 @@
 Este projeto faz parte do **módulo SEIA**, desenvolvido em **Python** utilizando **FastAPI**, com foco em:
 
 - Consultas ao banco de dados
-- Processamento de arquivos
+- Processamento de arquivos CNAB
 - Integração com múltiplos ambientes (DSV e HML)
 - Organização em camadas (routes, services, repositories)
 
 
 ## ⚠️ **Observação importante**:
-
 O projeto principal do SEIA utiliza a porta **8080** (JBoss).
 Por isso, esta API roda em **outra porta**, evitando conflitos.
 
@@ -25,10 +24,9 @@ module-seia/
 │ ├── repositories/         # Acesso a dados (SQL / PostgreSQL)
 │ ├── routes/               # Endpoints da API
 │ ├── services/             # Regras de negócio
-│ ├── main.py               # Inicialização da aplicação FastAPI
-│ ├── .env.py               # Inserir nessa camada de pastas
-│ └── env-exemple.py        # Exemplo das Variáveis de ambiente
+│ └── main.py               # Inicialização da aplicação FastAPI
 │
+├── .env                    # Variáveis de ambiente
 ├── requirements.txt        # Dependências do projeto
 ├── README.md
 └── .gitignore
@@ -46,6 +44,14 @@ module-seia/
 ---
 
 ## 🧪 Ambiente Virtual (venv)
+
+```bash
+python3 -m venv .venv
+
+source .venv/bin/activate
+```
+
+📌 Checklist rápido pós-fix
 
 ```bash
 rm -rf .venv
@@ -78,21 +84,30 @@ DATABASE_HML_NAME=seia_hml
 DATABASE_HML_USER=usuario
 DATABASE_HML_PASSWORD=senha
 
-# Banco de Dados - Treinamento (Treino)
-DATABASE_TREINAMENTO_HOST=localhost
-DATABASE_TREINAMENTO_PORT=5432
-DATABASE_TREINAMENTO_NAME=seia_hml
-DATABASE_TREINAMENTO_USER=usuario
-DATABASE_TREINAMENTO_PASSWORD=senha
-
 # Configurações Adicionais
 DEBUG=True
 LOG_LEVEL=INFO
 ```
 
+### 2️⃣ Authorization hash para o usuário admin:
+
+
+⚙️ Antes de executar a API pela primeira vez, é necessário gerar os hashes das senhas dos usuários:
+(APENAS PARA NÌVEL DE TESTE, NÃO RECOMENDADO para PRODUÇÃO)
+
+```bash
+# Gerar hashes para o usuário admin
+python app/core/scripts/gerar_hashes.py
+```
+
+> O que este comando faz:
+> 	Cria o diretório app/core/ se não existir
+> 	Gera hashes bcrypt para todos os usuários cadastrados
+> 	Salva o arquivo app/core/usuarios_hash.json com as senhas protegidas
+
+
 ▶️ Comando para iniciar a API:
 
 ```bash
-cd module-seia/ #Onde está a pasta -> app
 python -m uvicorn app.main:app --host 0.0.0.0 --port 9000 --reload
 ```
