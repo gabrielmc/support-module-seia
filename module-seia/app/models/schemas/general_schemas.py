@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 
 class RepflorRequest(BaseModel):
     identificador: str = Field(
@@ -18,14 +18,17 @@ class ExcluirRequerimentoLogico(BaseModel):
     requerente: str = Field(..., example="JOÃO DA SILVA")
     cpf_cnpj: str = Field(..., example="12345678901")
     imovel: str = Field(..., example="FAZENDA BOA VISTA")
-    
+
+class ProcessoSumiu(BaseModel):
+    numero_processo: str = Field(..., example="2026.001.00XXXX/INEMA/LIC-XXXXX")
+
 class UsuarioEmail(BaseModel):
     cpf: str = Field(..., example="08512197560")
     email: str = Field(..., example="usuario@email.com")
 
 class ListaUsuariosEmail(BaseModel):
     usuarios: List[UsuarioEmail]
-    
+
 class UsuarioScriptCPF(BaseModel):
     ticket : str
     cpf: str
@@ -33,3 +36,16 @@ class UsuarioScriptCPF(BaseModel):
 
 class ListaUsuariosCPF(BaseModel):
     usuarios: List[UsuarioScriptCPF]
+
+class UsuarioPerfil(BaseModel):
+    usuario: str = Field(..., example="JOÃO DA SILVA")
+    perfil: int = Field(..., example=9)
+
+class User(BaseModel):
+    username: str
+    email: Optional[str] = None
+    full_name: Optional[str] = None
+    disabled: Optional[bool] = None
+
+class UserInDB(User):
+    hashed_password: str

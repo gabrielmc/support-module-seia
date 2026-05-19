@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     DATABASE_HML_NAME: str
     DATABASE_HML_USER: str
     DATABASE_HML_PASSWORD: str
-    
+
     # ===== DATABASE - TREINAMENTO =====
     DATABASE_TREINAMENTO_HOST: str
     DATABASE_TREINAMENTO_PORT: int = 5432
@@ -25,23 +25,35 @@ class Settings(BaseSettings):
     DATABASE_TREINAMENTO_USER: str
     DATABASE_TREINAMENTO_PASSWORD: str
 
+    # ===== USUÁRIO MASTER (sem banco) =====
+    MASTER_USERNAME: str = ""
+    MASTER_PASSWORD: str = ""
+
     # ===== APP =====
     APP_HOST: str = "0.0.0.0"
     APP_PORT: int = 9000
     LOG_LEVEL: str = "INFO"
-    
+
     # ===== CORS =====
-    CORS_ORIGINS: List[str] = []
-    
+    CORS_ORIGINS: str = ""
+
+    @property
+    def cors_origins_list(self) -> List[str]:
+        return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin]
+
+    allow_origin_regex: str = r"https?://(10\.2\.128\.\d{1,3}|localhost|127\.0\.0\.1)(:\d+)?"
+
     # ===== JBOSS =====
     JBOSS_USER: str
     JBOSS_PASS: str
     JBOSS_URL_DSV: str
     JBOSS_URL_HML: str
-    
+
     JBOSS_URL_TREINAMENTO: str
     JBOSS_USER_TREINAMENTO: str
     JBOSS_PASS_TREINAMENTO: str
+
+    VERSION: str = "2.0.0"
 
     model_config = SettingsConfigDict(
         env_file=Path(__file__).resolve().parent.parent / ".env",

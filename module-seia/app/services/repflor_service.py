@@ -4,10 +4,10 @@ from app.repositories.repflor_repository import RepflorRepository
 logger = logging.getLogger("repflor_service")
 
 class RepflorService:
-    
+
     def __init__(self):
         self.repository = RepflorRepository()
-    
+
     def consultar_status(self, identificador: str):
         try:
             resultado = self.repository.buscar_por_identificador(identificador)
@@ -26,7 +26,7 @@ class RepflorService:
                 "sucesso": False,
                 "mensagem": "Ocorreu um erro ao consultar o status do requerimento."
             }
-    
+
     def processar(self, identificador: str):
         try:
             resultado = self.repository.buscar_por_identificador(identificador)

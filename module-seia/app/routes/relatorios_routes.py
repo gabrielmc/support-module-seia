@@ -10,6 +10,7 @@ from fastapi.responses import StreamingResponse
 from fastapi import UploadFile, File, HTTPException
 from openpyxl.styles import Alignment, Font
 from app.services.relatorio_service import RelatorioService
+from app.core.dependencies import CommonAuth
 
 router = APIRouter(
     prefix="/relatorios",
@@ -19,7 +20,7 @@ logger = logging.getLogger("relatorios")
 
 
 @router.get("/zoneamento-UC/{periodo}")
-def listar_relatorios(periodo: str):
+def listar_relatorios(periodo: str, auth: bool = CommonAuth):
     logger.info(f"GET /zoneamento-UC")
     try:
         data_fomatada = pd.to_datetime(periodo, dayfirst=True).strftime("%Y-%m-%d")
@@ -31,7 +32,7 @@ def listar_relatorios(periodo: str):
         df = pd.DataFrame(
             dados_relatorios["dados"],
             columns=dados_relatorios["colunas"]
-        )     
+        )
         #Mapeamento de colunas (interno → solicitado)
         colunas_map = {
             "processo": "Número do processo",
@@ -96,7 +97,7 @@ def listar_relatorios(periodo: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/zoneamento-UC/csv-to-xlsx")
-def converter_csv_para_excel(arquivo: UploadFile = File(...)):
+def converter_csv_para_excel(arquivo: UploadFile = File(...), auth: bool = CommonAuth):
     logger.info(f"POST /zoneamento-UC/csv-to-xlsx")
     try:
         # Validação básica
@@ -181,7 +182,7 @@ def converter_csv_para_excel(arquivo: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/zoneamento-UC/xlsx-corrigir-coordenadas")
-def corrigir_xlsx_coordenadas(arquivo: UploadFile = File(...)):
+def corrigir_xlsx_coordenadas(arquivo: UploadFile = File(...), auth: bool = CommonAuth):
     logger.info(f"POST /zoneamento-UC/xlsx-corrigir-coordenadas")
     try:
         if not arquivo.filename.endswith(".xlsx"):
@@ -256,3 +257,4 @@ def corrigir_xlsx_coordenadas(arquivo: UploadFile = File(...)):
     except Exception as e:
         logger.warning(f"EXCEPTION - POST - /zoneamento-UC/xlsx-corrigir-coordenadas erro : {e}")
         raise HTTPException(status_code=500, detail=str(e))
+

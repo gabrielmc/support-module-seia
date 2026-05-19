@@ -1,11 +1,11 @@
 import logging
 from datetime import datetime
-from app.core.database import get_db_connection
+from app.core.database.conn_base import get_db_connection
 
 logger = logging.getLogger("relatorios_repository")
 
 class RelatoriosRepository:
-    
+
     desenvolvimento = "DSV"
     homologacao = "HML"
 
@@ -24,18 +24,18 @@ class RelatoriosRepository:
                                     ELSE pj.num_cnpj
                             END AS cpf_cnpj,
                             e.nom_empreendimento AS nome_empreendimento,
-                            t.des_tipologia AS tipologia_empreendimento,        
+                            t.des_tipologia AS tipologia_empreendimento,
                             m.nom_municipio AS municipio_empreendimento,
                             CASE
                                     WHEN count(pa.ide_processo_ato) >= 2 THEN array_to_string(array_agg(DISTINCT aa.nom_ato_ambiental), '; ')
                                     ELSE max(DISTINCT aa.nom_ato_ambiental)
-                            END AS "ato(s)",        
+                            END AS "ato(s)",
                             TO_CHAR(ct.dtc_tramitacao, 'dd/mm/yyyy') AS data_conclusao,
                             tspa.nom_tipo_status_processo_ato AS status_ato,
                             spa.num_prazo_validade AS validade_ato,
-                                    CASE WHEN aa.ide_tipo_ato=1 THEN 
-                                            st_transform(dg.the_geom,4674) 
-                                    ELSE 
+                                    CASE WHEN aa.ide_tipo_ato=1 THEN
+                                            st_transform(dg.the_geom,4674)
+                                    ELSE
                                             st_transform(dg2.the_geom,4674)
                                     END  AS coordenadas
                     FROM
@@ -54,7 +54,7 @@ class RelatoriosRepository:
                                     WHERE
                                             spa2.ide_processo_ato = pa.ide_processo_ato))
                     LEFT JOIN tipo_status_processo_ato tspa ON
-                                    tspa.ide_tipo_status_processo_ato =spa.ide_tipo_status_processo_ato             
+                                    tspa.ide_tipo_status_processo_ato =spa.ide_tipo_status_processo_ato
                     INNER JOIN ato_ambiental aa ON
                             (pa.ide_ato_ambiental = aa.ide_ato_ambiental)
                     INNER JOIN requerimento r ON
@@ -84,15 +84,15 @@ class RelatoriosRepository:
                     INNER JOIN dado_geografico dg ON
                             (lg.ide_localizacao_geografica = dg.ide_localizacao_geografica)
                     LEFT JOIN outorga o ON
-                            (r.ide_requerimento = o.ide_requerimento)        
-                    LEFT JOIN outorga_localizacao_geografica olg ON 
+                            (r.ide_requerimento = o.ide_requerimento)
+                    LEFT JOIN outorga_localizacao_geografica olg ON
                             (o.ide_outorga = olg.ide_outorga)
-                    LEFT JOIN outorga_concedida oc ON 
+                    LEFT JOIN outorga_concedida oc ON
                             (olg.ide_outorga_localizacao_geografica = oc.ide_outorga_localizacao_geografica)
                     LEFT JOIN fce_outorga_localizacao_geografica folg ON
                             (oc.ide_fce_outorga_localizacao_geografica = folg.ide_fce_outorga_localizacao_geografica)
                     LEFT JOIN dado_geografico dg2 ON
-                            (folg.ide_localizacao_geografica = dg2.ide_localizacao_geografica)     
+                            (folg.ide_localizacao_geografica = dg2.ide_localizacao_geografica)
                     INNER JOIN empreendimento_tipologia et ON
                             (e.ide_empreendimento = et.ide_empreendimento)
                     INNER JOIN tipologia_grupo tg ON
@@ -101,12 +101,12 @@ class RelatoriosRepository:
                             (tg.ide_tipologia = t.ide_tipologia)
                     WHERE
                             ct.dtc_tramitacao > %(periodo)s AND
-                            ct.ide_status_fluxo = 2 
+                            ct.ide_status_fluxo = 2
                             AND ct.ind_fim_da_fila = TRUE
                             AND pa.ind_excluido = FALSE
                             AND rp.ide_tipo_pessoa_requerimento = 1
                             AND aa.ide_tipo_ato IN (1,4)
-                            AND spa.ide_tipo_status_processo_ato IN (5,7,8,9) 
+                            AND spa.ide_tipo_status_processo_ato IN (5,7,8,9)
                             AND ee.ide_tipo_endereco = 4
                     GROUP BY
                             processo,

@@ -1,16 +1,18 @@
+import json
 import logging, requests
 from typing import List, Optional
-from app.core.database import get_db_connection
+from datetime import datetime
 from app.core.config import settings
 from requests.auth import HTTPDigestAuth
-from datetime import datetime
+from app.core.database.conn_base import get_db_connection
 
 logger = logging.getLogger("consulta_repository")
 
 class ConsultaRepository:
-    
+
     desenvolvimento = "DSV"
     homologacao = "HML"
+    treinamento = "TRT"
 
     def buscar_datas_boletos(self, numeros_boletos: List[str]) -> dict:
         connection = None
@@ -84,7 +86,7 @@ class ConsultaRepository:
                 cursor.close()
             if connection:
                 connection.close()
-                
+
     def monitorar_memoria_jboss(self, url: str):
         payload = {
             "operation": "read-resource",
@@ -124,7 +126,7 @@ class ConsultaRepository:
                 exc_info=True
             )
             return {"erro": str(e)}
-        
+
     def definir_jboss_ambientes(self, url: str):
         # Determinar credenciais baseado no ambiente de treinamento
         # TODO melhorar lógica para identificar ambiente, talvez usando regex ou configuração específica
@@ -134,52 +136,150 @@ class ConsultaRepository:
         else:
             user = settings.JBOSS_USER
             password = settings.JBOSS_PASS
-        
+
         return user, password
-    
-    def monitorar_atualizacao_banco(self):
-        connection = None
-        cursor = None
+
+    def monitorar_atualizacao_banco_old(self):
         try:
             sql = """
-                SELECT 
+                SELECT
                     ct.dtc_tramitacao::date AS Data_Ultima_Tramitacao,
                     r.dtc_criacao::date AS Data_Ultimo_Requeirmento,
-                    CASE 
+                    CASE
                         WHEN ct.dtc_tramitacao::date = r.dtc_criacao::date
                         THEN 'DATAS IGUAIS'
                         ELSE 'DATAS DIFERENTES'
                     END AS comparacao
-                FROM 
-                    (SELECT dtc_tramitacao 
-                    FROM controle_tramitacao 
-                    ORDER BY dtc_tramitacao DESC 
+                FROM
+                    (SELECT dtc_tramitacao
+                    FROM controle_tramitacao
+                    ORDER BY dtc_tramitacao DESC
                     LIMIT 1) ct,
-                    (SELECT dtc_criacao 
-                    FROM requerimento 
-                    ORDER BY dtc_criacao DESC 
+                    (SELECT dtc_criacao
+                    FROM requerimento
+                    ORDER BY dtc_criacao DESC
                     LIMIT 1) r;
             """
-            with get_db_connection(self.desenvolvimento) as conn:
-                with conn.cursor() as cursor:
-                    cursor.execute(sql)
-                    resultado = cursor.fetchone()
-                    if resultado:
+            ambientes = ["DSV", "HML", "TRT"]
+            resultados = []
+            for ambiente_nome in ambientes:
+                print(f"Consultando ambiente: {ambiente_nome}")
+                with get_db_connection(ambiente_nome) as conn:
+                    with conn.cursor() as cursor:
+                        cursor.execute(sql)
+                        resultado = cursor.fetchone()
+                        if not resultado:
+                            continue
                         data_tramitacao = resultado[0]
-                        comparacao = resultado[2]
-                        
-                        if comparacao == 'DATAS IGUAIS':
-                            dias_desatualizado = (datetime.now().date() - data_tramitacao).days if data_tramitacao else None
-                            return {
-                                "Data_Ultima_Tramitacao": data_tramitacao.strftime("%d/%m/%Y") if data_tramitacao else None,
-                                "Dias_Desatualizado": dias_desatualizado
-                            }
-                    return None
+                        data_formatada = (
+                            data_tramitacao.strftime("%d/%m/%Y")
+                            if data_tramitacao else None
+                        )
+                        dias_desatualizado = (
+                            (datetime.now().date() - data_tramitacao).days
+                            if data_tramitacao else None
+                        )
+                        resultados.append({
+                            "ambiente": ambiente_nome,
+                            "data_ultima_tramitacao": data_formatada,
+                            "dias_desatualizado": dias_desatualizado
+                        })
+
+            '''
+            # Tenta obter do cache Redis
+            cache_key = f"user_15874_carol.santana_seia"
+            #comandos para teste de cache do REDIS (similar ao CRUD do RedisInsight)
+            import redis
+            redis_client = redis.Redis(host='localhost', port=6379, password='987321gabriel', db=0, decode_responses=True)
+            redis_client.ping()
+            print("✅ Conectado ao Redis com sucesso!")
+            conteudo_armazenado = json.dumps(resultados, default=str)
+            redis_client.set(cache_key, conteudo_armazenado, ex=3000)  # Armazena por 1 hora
+            print(f"Dados salvos no Redis com sucesso! Tamanho: {len(conteudo_armazenado)} bytes")
+            dados_recuperados_json = redis_client.get(cache_key)
+            print(dados_recuperados_json)
+            if dados_recuperados_json:
+                # Converter JSON string de volta para objeto Python
+                dados_armazenados = json.loads(dados_recuperados_json)
+                print(f"📖 Dados recuperados do Redis: {dados_armazenados}")
+                print(f"✅ Teste Redis concluído com sucesso!")
+            else:
+                print("❌ Falha ao recuperar dados do Redis")
+            '''
+            return resultados
         except Exception as e:
-            logger.error(f"Erro em monitorar_atualizacao_banco: {str(e)}", exc_info=True)
+            logger.error(
+                f"Erro em monitorar_atualizacao_banco: {str(e)}",
+                exc_info=True
+            )
             return None
-        finally:
-            if cursor:
-                cursor.close()
-            if connection:
-                connection.close()
+
+    def monitorar_atualizacao_banco(self):
+        sql = """
+            SELECT
+                ct.dtc_tramitacao::date AS Data_Ultima_Tramitacao,
+                r.dtc_criacao::date AS Data_Ultimo_Requerimento,
+                CASE
+                    WHEN ct.dtc_tramitacao::date = r.dtc_criacao::date
+                    THEN 'DATAS IGUAIS'
+                    ELSE 'DATAS DIFERENTES'
+                END AS comparacao
+            FROM
+                (SELECT dtc_tramitacao
+                FROM controle_tramitacao
+                ORDER BY dtc_tramitacao DESC
+                LIMIT 1) ct,
+                (SELECT dtc_criacao
+                FROM requerimento
+                ORDER BY dtc_criacao DESC
+                LIMIT 1) r;
+        """
+        ambientes = ["DSV", "HML", "TRT"]
+        resultados = []
+        for ambiente_nome in ambientes:
+            try:
+                # Tenta obter conexão
+                with get_db_connection(ambiente_nome) as conn:
+                    with conn.cursor() as cursor:
+                        cursor.execute(sql)
+                        resultado = cursor.fetchone()
+                        if not resultado:
+                            logger.warning(f"Nenhum resultado encontrado no ambiente {ambiente_nome}")
+                            continue
+
+                        data_tramitacao = resultado[0]
+                        data_requerimento = resultado[1]
+                        comparacao = resultado[2] if len(resultado) > 2 else None
+                        # Formata as datas
+                        data_formatada = (
+                            data_tramitacao.strftime("%d/%m/%Y")
+                            if data_tramitacao else None
+                        )
+                        dias_desatualizado = (
+                            (datetime.now().date() - data_tramitacao).days
+                            if data_tramitacao else None
+                        )
+                        #resultados.append({
+                        #    "ambiente": ambiente_nome,
+                        #    "data_ultima_tramitacao": data_formatada,
+                        #    "data_ultimo_requerimento": data_requerimento.strftime("%d/%m/%Y") if data_requerimento else None,
+                        #    "comparacao": comparacao,
+                        #    "dias_desatualizado": dias_desatualizado,
+                        #    "status": "ok"
+                        #})
+                        resultados.append({
+                            "ambiente": ambiente_nome,
+                            "data_ultima_tramitacao": data_formatada,
+                            "dias_desatualizado": dias_desatualizado
+                        })
+            except Exception as e:
+                logger.error(f"❌ Erro no ambiente {ambiente_nome}: {str(e)}", exc_info=True)
+                # Adiciona resultado de erro para este ambiente
+                resultados.append({
+                    "ambiente": ambiente_nome,
+                    "data_ultima_tramitacao": None,
+                    "dias_desatualizado": None,
+                    "status": "erro",
+                    "erro": str(e)
+                })
+        return resultados

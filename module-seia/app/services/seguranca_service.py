@@ -7,11 +7,11 @@ from app.repositories.seguranca_repository import SegurancaRepository
 logger = logging.getLogger("script_zip_execution")
 
 class SegurancaService:
-    
+
     def __init__(self):
         self.repository = SegurancaRepository()
         self.diretorio_saida = "/home/gmuniz/Documentos/artefatos-seia/tickets-SEIA/login-branco/"
-    
+
     def atualizar_perfil(self, nome_usuario: str, novo_perfil: int):
         try:
             resultado = self.repository.buscar_por_nome_usuario(nome_usuario)
@@ -40,7 +40,7 @@ class SegurancaService:
                 "sucesso": False,
                 "mensagem": "Ocorreu um erro ao atualizar o perfil do usuário."
             }
-    
+
     def incluir_email_usuario(self, usuarios: list):
         try:
             resultados = []
@@ -66,14 +66,14 @@ class SegurancaService:
                 "sucesso": False,
                 "mensagem": "Ocorreu um erro ao atualizar os usuários."
             }
-        
+
     def gerar_script_email_por_cpf(self, usuarios: list):
         os.makedirs(self.diretorio_saida, exist_ok=True)
         script_final = ""
         for index, usuario in enumerate(usuarios, start=1):
             cpf_limpo = ''.join(filter(str.isdigit, usuario.cpf))
             ide_pessoa = self.repository.buscar_pessoa_por_cpf(cpf_limpo)
-            
+
             if not ide_pessoa:
                 continue  # ignora CPF não encontrado
             email_seguro = usuario.email.replace("'", "''")
@@ -171,7 +171,7 @@ class SegurancaService:
             "DROP DATABASE",
             "ALTER SYSTEM",
             "TRUNCATE DATABASE",
-            "DELETE ",
+            #"DELETE ", -- DELETE é permitido, cuidado para não usar sem WHERE
             "DROP TABLE"
         ]
         for comando in comandos_proibidos:
@@ -180,3 +180,57 @@ class SegurancaService:
                     status_code=400,
                     detail=f"Comando proibido detectado: {comando}"
                 )
+
+    async def validar_pacote_persistence(self, file):
+        contents = await file.read()
+        try:
+            with zipfile.ZipFile(io.BytesIO(contents)) as z:
+                persistence_file = next(
+                    (name for name in z.namelist() if "META-INF/persistence.xml" in name),
+                    None
+                )
+                if not persistence_file:
+                    return {
+                        "valido": False,
+                        "motivo": "Arquivo persistence.xml não encontrado",
+                        "propriedades_invalidas": []
+                    }
+                with z.open(persistence_file) as f:
+                    xml_content = f.read().decode("utf-8")
+                import xml.etree.ElementTree as ET
+                root = ET.fromstring(xml_content)
+                propriedades_esperadas = [
+                    "hibernate.show_sql",
+                    "hibernate.format_sql",
+                    "hibernate.use_sql_comments"
+                ]
+                propriedades_invalidas = []
+                for prop in root.iter():
+                    if prop.tag.endswith("property"):
+                        name = prop.attrib.get("name")
+                        value = prop.attrib.get("value")
+                        print(f"Propriedade encontrada: {name} = {value}")
+                        if name in propriedades_esperadas:
+                            if value and value.lower() == "true":
+                                propriedades_invalidas.append(name)
+                if propriedades_invalidas:
+                    return {
+                        "valido": False,
+                        "motivo": "Existem propriedades que devem ser FALSE",
+                        "propriedades_invalidas": propriedades_invalidas
+                    }
+                return {
+                    "valido": True,
+                    "motivo": "Imagem válida, sem propriedades inválidas"
+                }
+        except zipfile.BadZipFile:
+            return {
+                "valido": False,
+                "motivo": "Arquivo ZIP inválido"
+            }
+        except Exception as e:
+            logger.error(f"Erro ao validar zip: {str(e)}", exc_info=True)
+            return {
+                "valido": False,
+                "motivo": "Erro interno ao processar arquivo"
+            }

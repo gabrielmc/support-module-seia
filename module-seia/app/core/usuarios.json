@@ -1,0 +1,40 @@
+{
+    "users": [
+        {
+            "id": 1,
+            "email": "hermes.pinheironeto@prodeb",
+            "password": "seia@123",
+            "name": "Hérmes Pinheiro Neto"
+        },
+        {
+            "id": 2,
+            "email": "caroline.santana@prodeb",
+            "password": "seia@123",
+            "name": "Caroline de Jesus Santana"
+        },
+        {
+            "id": 3,
+            "email": "gabriel.cerqueira@prodeb",
+            "password": "seia@123",
+            "name": "Gabriel Muniz Cerqueira"
+        },
+        {
+            "id": 4,
+            "email": "enzo.oliveira@prodeb",
+            "password": "seia@123",
+            "name": "Enzo Matos de Oliveira"
+        },
+        {
+            "id": 5,
+            "email": "alvaro.lima@prodeb",
+            "password": "seia@123",
+            "name": "Álvaro da Silva Lima"
+        },
+        {
+            "id": 6,
+            "email": "luciano.vieira@prodeb",
+            "password": "seia@123",
+            "name": "Luciano de Pinna Vieira"
+        }
+    ]
+}
